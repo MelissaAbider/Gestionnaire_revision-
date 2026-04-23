@@ -1,6 +1,6 @@
 <?php
 /**
- * Vue des rapports graphiques
+ * Page d'accueil
  */
 
 class ChartReportView {
