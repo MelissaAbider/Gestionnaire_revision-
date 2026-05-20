@@ -15,7 +15,7 @@ class AccueilView {
 		<head>
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Accueil - Gestionnaire de Revision</title>
+			<title>Accueil - Gestionnaire de Révision</title>
 			<link rel="stylesheet" href="/css/style.css">
 		</head>
 		<body class="home-body">
@@ -31,23 +31,23 @@ class AccueilView {
 							<span class="nav-icon">⌂</span>
 							<span>Accueil</span>
 						</a>
-						<a href="#" class="nav-item">
+						<a href="?action=flashcards" class="nav-item">
 							<span class="nav-icon">□</span>
 							<span>Mes fiches</span>
 						</a>
 						<a href="#" class="nav-item">
 							<span class="nav-icon">↗</span>
-							<span>Partagees avec moi</span>
+							<span>Partagées avec moi</span>
 						</a>
 						<a href="#" class="nav-item active">
 							<span class="nav-icon">▣</span>
-							<span>Matieres</span>
+							<span>Matières</span>
 						</a>
 					</nav>
 
 					<a href="?action=logout" class="nav-item logout-link">
 						<span class="nav-icon">⇥</span>
-						<span>Deconnexion</span>
+						<span>Déconnexion</span>
 					</a>
 				</aside>
 
@@ -55,7 +55,7 @@ class AccueilView {
 					<header class="home-header">
 						<div>
 							<p class="home-kicker">Bonjour <?= htmlspecialchars($firstName) ?></p>
-							<h1>Mes matieres</h1>
+							<h1>Mes matières</h1>
 						</div>
 					</header>
 
@@ -88,16 +88,16 @@ class AccueilView {
 
 						<form class="add-subject-card" method="POST" action="?action=createMatiere">
 							<span class="add-icon">+</span>
-							<label for="matiere-name">Ajouter une matiere</label>
-							<input type="text" id="matiere-name" name="name" placeholder="Nom de la matiere" required>
-							<select name="color" aria-label="Couleur de la matiere">
+							<label for="matiere-name">Ajouter une matière</label>
+							<input type="text" id="matiere-name" name="name" placeholder="Nom de la matière" required>
+							<select name="color" aria-label="Couleur de la matière">
 								<option value="blue">Bleu</option>
 								<option value="teal">Turquoise</option>
 								<option value="green">Vert</option>
 								<option value="orange">Orange</option>
 								<option value="indigo">Indigo</option>
 							</select>
-							<button type="submit">Creer</button>
+							<button type="submit">Créer</button>
 						</form>
 					</div>
 				</section>

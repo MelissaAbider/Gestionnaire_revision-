@@ -15,6 +15,21 @@ class Router {
 			case 'home':
 				$this->renderHome();
 				break;
+			case 'flashcards':
+				$this->renderFlashcards();
+				break;
+			case 'createFlashcard':
+				$this->renderFlashcardForm();
+				break;
+			case 'storeFlashcard':
+				$this->storeFlashcard();
+				break;
+			case 'editFlashcard':
+				$this->renderFlashcardForm((int)($_GET['id'] ?? 0));
+				break;
+			case 'updateFlashcard':
+				$this->updateFlashcard();
+				break;
 			case 'register':
 				$authController->registerForm();
 				break;
@@ -49,6 +64,8 @@ class Router {
 		$files = [
 			$base . 'controllers/AuthController.php',
 			$base . 'views/AccueilView.php',
+			$base . 'views/FlashcardFormView.php',
+			$base . 'views/FlashcardsListView.php',
 			$base . 'views/RegisterView.php',
 			$base . 'views/LoginView.php',
 			$base . 'database/DatabaseConnection.php',
@@ -88,8 +105,158 @@ class Router {
 			$GLOBALS['matieres'] = [];
 			$GLOBALS['matiereLoadError'] = 'Les matieres ne peuvent pas encore etre chargees. Verifie que la table matieres existe dans la base.';
 		}
+
 		$view = new AccueilView();
 		$view->render();
+	}
+
+	private function renderFlashcards(): void {
+		$authService = new AuthService();
+		$user = $authService->getCurrentUser();
+
+		if (!$user) {
+			header('Location: ?action=login');
+			exit;
+		}
+
+		$filters = [
+			'q' => trim($_GET['q'] ?? ''),
+			'matiere' => trim($_GET['matiere'] ?? ''),
+			'sort' => trim($_GET['sort'] ?? 'recent'),
+		];
+
+		$GLOBALS['currentUser'] = $user;
+		$GLOBALS['flashcardFilters'] = $filters;
+
+		try {
+			$flashcardService = new FlashcardService();
+			$allFlashcards = $flashcardService->findListForUser((int)$user->id);
+			$GLOBALS['matiereOptions'] = $flashcardService->getMatiereOptions($allFlashcards);
+			$GLOBALS['flashcards'] = $flashcardService->filterList($allFlashcards, $filters);
+		} catch (\Throwable $e) {
+			$GLOBALS['flashcards'] = [];
+			$GLOBALS['matiereOptions'] = [];
+			$GLOBALS['flashcardLoadError'] = 'Les fiches ne peuvent pas encore etre chargees. Verifie que les tables flashcards, shares et users existent dans la base.';
+		}
+
+		$view = new FlashcardsListView();
+		$view->render();
+	}
+
+	private function renderFlashcardForm(?int $id = null, ?array $formData = null, array $errors = []): void {
+		$authService = new AuthService();
+		$user = $authService->getCurrentUser();
+
+		if (!$user) {
+			header('Location: ?action=login');
+			exit;
+		}
+
+		$flashcardService = new FlashcardService();
+		$isEdit = $id !== null && $id > 0;
+
+		if ($formData === null) {
+			if ($isEdit) {
+				$formData = $flashcardService->findFormDataForUser((int)$id, (int)$user->id);
+				if (!$formData) {
+					header('Location: ?action=flashcards');
+					exit;
+				}
+			} else {
+				$formData = $flashcardService->emptyFormData();
+			}
+		}
+
+		try {
+			$options = $flashcardService->getFormOptions((int)$user->id);
+		} catch (\Throwable $e) {
+			$options = ['matieres' => [], 'users' => []];
+			$errors['_form'] = 'Les options du formulaire ne peuvent pas etre chargees. Verifie les tables matieres et users.';
+		}
+
+		$GLOBALS['currentUser'] = $user;
+		$GLOBALS['flashcardFormMode'] = $isEdit ? 'edit' : 'create';
+		$GLOBALS['flashcardFormData'] = $formData;
+		$GLOBALS['flashcardFormErrors'] = $errors;
+		$GLOBALS['flashcardFormMatieres'] = $options['matieres'];
+		$GLOBALS['flashcardFormUsers'] = $options['users'];
+
+		$view = new FlashcardFormView();
+		$view->render();
+	}
+
+	private function storeFlashcard(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			header('Location: ?action=createFlashcard');
+			exit;
+		}
+
+		$authService = new AuthService();
+		$user = $authService->getCurrentUser();
+
+		if (!$user) {
+			header('Location: ?action=login');
+			exit;
+		}
+
+		$flashcardService = new FlashcardService();
+
+		try {
+			$result = $flashcardService->createFromForm($_POST, (int)$user->id);
+		} catch (\Throwable $e) {
+			$result = [
+				'success' => false,
+				'errors' => ['_form' => 'Impossible de creer la fiche. Verifie que les tables flashcards, question_responses et shares existent.'],
+				'data' => $_POST,
+			];
+		}
+
+		if ($result['success']) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$this->renderFlashcardForm(null, $result['data'], $result['errors']);
+	}
+
+	private function updateFlashcard(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$authService = new AuthService();
+		$user = $authService->getCurrentUser();
+
+		if (!$user) {
+			header('Location: ?action=login');
+			exit;
+		}
+
+		$id = (int)($_POST['id'] ?? 0);
+		if ($id <= 0) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$flashcardService = new FlashcardService();
+
+		try {
+			$result = $flashcardService->updateFromForm($id, $_POST, (int)$user->id);
+		} catch (\Throwable $e) {
+			$result = [
+				'success' => false,
+				'errors' => ['_form' => 'Impossible de modifier la fiche. Verifie que la fiche existe encore.'],
+				'data' => $_POST,
+			];
+		}
+
+		if ($result['success']) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$this->renderFlashcardForm($id, $result['data'], $result['errors']);
 	}
 
 	private function createMatiere(): void {
