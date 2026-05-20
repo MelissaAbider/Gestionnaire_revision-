@@ -366,7 +366,7 @@ body {
 .subject-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 16px;
     padding: 25px 24px 24px;
     border: 1px solid rgba(238, 241, 247, 0.92);
 }
@@ -527,6 +527,57 @@ body {
     font-size: 13px;
     font-weight: 800;
     cursor: pointer;
+}
+
+.edit-subject-form {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 10px;
+}
+
+.edit-subject-form input,
+.edit-subject-form select {
+    min-height: 36px;
+    padding: 0 10px;
+    color: #253047;
+    background: #ffffff;
+    border: 1px solid #dbe2ef;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.edit-subject-form input {
+    grid-column: 1 / -1;
+}
+
+.edit-subject-form button,
+.delete-subject-button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.edit-subject-form button {
+    color: #ffffff;
+    background: #5165f6;
+}
+
+.delete-subject-button {
+    width: 100%;
+    color: #b42318;
+    background: #fff1f0;
+    border: 1px solid #ffd1cc;
+}
+
+.delete-subject-button:hover {
+    background: #ffe4e0;
 }
 
 @media (max-width: 900px) {

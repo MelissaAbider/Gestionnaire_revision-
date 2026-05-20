@@ -83,6 +83,22 @@ class AccueilView {
 									</div>
 								</div>
 								<span class="subject-color <?= htmlspecialchars($matiere->color) ?>"></span>
+								<form class="edit-subject-form" method="POST" action="?action=updateMatiere">
+									<input type="hidden" name="id" value="<?= (int) $matiere->id ?>">
+									<input type="text" name="name" value="<?= htmlspecialchars($matiere->name) ?>" aria-label="Nom de la matiere" required>
+									<select name="color" aria-label="Couleur de la matiere">
+										<option value="blue" <?= $matiere->color === 'blue' ? 'selected' : '' ?>>Bleu</option>
+										<option value="teal" <?= $matiere->color === 'teal' ? 'selected' : '' ?>>Turquoise</option>
+										<option value="green" <?= $matiere->color === 'green' ? 'selected' : '' ?>>Vert</option>
+										<option value="orange" <?= $matiere->color === 'orange' ? 'selected' : '' ?>>Orange</option>
+										<option value="indigo" <?= $matiere->color === 'indigo' ? 'selected' : '' ?>>Indigo</option>
+									</select>
+									<button type="submit">Modifier</button>
+								</form>
+								<form method="POST" action="?action=deleteMatiere" onsubmit="return confirm('Supprimer cette matiere ? Les flashcards liees seront conservees sans matiere.');">
+									<input type="hidden" name="id" value="<?= (int) $matiere->id ?>">
+									<button class="delete-subject-button" type="submit">Supprimer</button>
+								</form>
 							</article>
 						<?php endforeach; ?>
 

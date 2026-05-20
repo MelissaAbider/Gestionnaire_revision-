@@ -25,6 +25,34 @@ class MatiereRepository {
 		return (int)$stmt->fetchColumn();
 	}
 
+	public function update(Matiere $matiere): bool {
+		$stmt = $this->pdo->prepare(
+			'UPDATE matieres
+			SET name = :name, color = :color
+			WHERE id = :id AND owner_id = :owner_id'
+		);
+		$stmt->execute([
+			'id' => $matiere->id,
+			'owner_id' => $matiere->ownerId,
+			'name' => $matiere->name,
+			'color' => $matiere->color,
+		]);
+
+		return $stmt->rowCount() > 0;
+	}
+
+	public function deleteForUser(int $id, int $ownerId): bool {
+		$stmt = $this->pdo->prepare(
+			'DELETE FROM matieres WHERE id = :id AND owner_id = :owner_id'
+		);
+		$stmt->execute([
+			'id' => $id,
+			'owner_id' => $ownerId,
+		]);
+
+		return $stmt->rowCount() > 0;
+	}
+
 	public function findByIdForUser(int $id, int $ownerId): ?Matiere {
 		$stmt = $this->pdo->prepare(
 			'SELECT m.*, COUNT(f.id) AS flashcard_count

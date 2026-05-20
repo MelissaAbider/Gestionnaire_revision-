@@ -33,6 +33,12 @@ class Router {
 			case 'createMatiere':
 				$this->createMatiere();
 				break;
+			case 'updateMatiere':
+				$this->updateMatiere();
+				break;
+			case 'deleteMatiere':
+				$this->deleteMatiere();
+				break;
 			case 'dashboard':
 				$this->renderHome();
 				break;
@@ -128,6 +134,62 @@ class Router {
 		} catch (\Throwable $e) {
 			$GLOBALS['matieres'] = [];
 		}
+		$view = new AccueilView();
+		$view->render();
+	}
+
+	private function updateMatiere(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			header('Location: ?action=dashboard');
+			exit;
+		}
+
+		$this->handleMatiereMutation('update');
+	}
+
+	private function deleteMatiere(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			header('Location: ?action=dashboard');
+			exit;
+		}
+
+		$this->handleMatiereMutation('delete');
+	}
+
+	private function handleMatiereMutation(string $mutation): void {
+		$authService = new AuthService();
+		$user = $authService->getCurrentUser();
+
+		if (!$user) {
+			header('Location: ?action=login');
+			exit;
+		}
+
+		$matiereService = new MatiereService();
+		try {
+			$result = $mutation === 'delete'
+				? $matiereService->delete($_POST, (int)$user->id)
+				: $matiereService->update($_POST, (int)$user->id);
+		} catch (\Throwable $e) {
+			$result = [
+				'success' => false,
+				'errors' => ['Impossible de modifier la matiere pour le moment.'],
+			];
+		}
+
+		if ($result['success']) {
+			header('Location: ?action=dashboard');
+			exit;
+		}
+
+		$GLOBALS['currentUser'] = $user;
+		$GLOBALS['matiereErrors'] = $result['errors'];
+		try {
+			$GLOBALS['matieres'] = $matiereService->findAllByUser((int)$user->id);
+		} catch (\Throwable $e) {
+			$GLOBALS['matieres'] = [];
+		}
+
 		$view = new AccueilView();
 		$view->render();
 	}
