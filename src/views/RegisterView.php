@@ -16,7 +16,7 @@ class RegisterView {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Inscription - Gestionnaire de Révision</title>
-            <link rel="stylesheet" href="public/css/style.css">
+            <link rel="stylesheet" href="/css/style.css">
         </head>
         <body>
             <div class="register-container">
@@ -26,7 +26,19 @@ class RegisterView {
                         <p>Créez votre compte pour commencer</p>
                     </div>
 
-                    <form class="register-form" method="POST" action="">
+                    <?php $errors = $GLOBALS['registerErrors'] ?? []; ?>
+                    <?php $old = $_POST ?? []; ?>
+                    <?php if (!empty($errors)): ?>
+                        <div style="color: var(--error); margin-bottom: 12px; text-align:center;">
+                            <ul style="list-style:none; padding:0; margin:0;">
+                                <?php foreach ($errors as $e): ?>
+                                    <li><?= htmlspecialchars($e) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
+                    <form class="register-form" method="POST" action="?action=registerSubmit">
                         <div class="form-group">
                             <label for="firstName">Prénom</label>
                             <input 
@@ -34,6 +46,7 @@ class RegisterView {
                                 id="firstName" 
                                 name="firstName" 
                                 placeholder="Entrez votre prénom" 
+                                value="<?= htmlspecialchars($old['firstName'] ?? '') ?>"
                                 required
                             >
                         </div>
@@ -45,6 +58,7 @@ class RegisterView {
                                 id="lastName" 
                                 name="lastName" 
                                 placeholder="Entrez votre nom" 
+                                value="<?= htmlspecialchars($old['lastName'] ?? '') ?>"
                                 required
                             >
                         </div>
@@ -56,6 +70,7 @@ class RegisterView {
                                 id="email" 
                                 name="email" 
                                 placeholder="Entrez votre email" 
+                                value="<?= htmlspecialchars($old['email'] ?? '') ?>"
                                 required
                             >
                         </div>

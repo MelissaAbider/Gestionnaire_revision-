@@ -76,6 +76,22 @@ Le projet suit une architecture MVC (Modèle-Vue-Contrôleur) avec des couches s
 - **Factories** : Création d'objets (pattern Factory)
 - **Database** : Gestion de la connexion (pattern Singleton)
 
+## Configuration PostgreSQL
+
+La connexion à PostgreSQL est maintenant gérée par `src/config.php`.
+
+Modifie le fichier `src/config.php` avec tes paramètres PostgreSQL :
+
+```php
+return [
+    'dsn' => 'pgsql:host=127.0.0.1;port=5432;dbname=GestionnaireRevision',
+    'user' => 'postgres',
+    'pass' => 'motdepasse',
+];
+```
+
+Si `src/config.php` n'existe pas, le projet utilise les variables d'environnement `DB_DSN`, `DB_USER`, `DB_PASS`, puis SQLite en dernier recours.
+
 ## Classes Principales
 
 ### Contrôleurs
