@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS shares CASCADE;
 DROP TABLE IF EXISTS question_responses CASCADE;
 DROP TABLE IF EXISTS flashcards CASCADE;
+DROP TABLE IF EXISTS matieres CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- =========================
@@ -18,11 +19,31 @@ CREATE TABLE users (
 );
 
 -- =========================
+-- TABLE MATIERES
+-- =========================
+CREATE TABLE matieres (
+    id SERIAL PRIMARY KEY,
+    owner_id INTEGER NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    color VARCHAR(30) DEFAULT 'blue',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_matieres_owner
+        FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT unique_matiere_per_user
+        UNIQUE (owner_id, name)
+);
+
+-- =========================
 -- TABLE FLASHCARDS
 -- =========================
 CREATE TABLE flashcards (
     id SERIAL PRIMARY KEY,
     owner_id INTEGER NOT NULL,
+    matiere_id INTEGER,
     title VARCHAR(255) NOT NULL,
     subject VARCHAR(255),
     theme VARCHAR(255),
@@ -32,7 +53,12 @@ CREATE TABLE flashcards (
     CONSTRAINT fk_flashcards_owner
         FOREIGN KEY (owner_id)
         REFERENCES users(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_flashcards_matiere
+        FOREIGN KEY (matiere_id)
+        REFERENCES matieres(id)
+        ON DELETE SET NULL
 );
 
 -- =========================
@@ -78,6 +104,12 @@ CREATE TABLE shares (
 -- =========================
 CREATE INDEX idx_flashcards_owner_id 
 ON flashcards(owner_id);
+
+CREATE INDEX idx_flashcards_matiere_id
+ON flashcards(matiere_id);
+
+CREATE INDEX idx_matieres_owner_id
+ON matieres(owner_id);
 
 CREATE INDEX idx_question_responses_flashcard_id 
 ON question_responses(flashcard_id);

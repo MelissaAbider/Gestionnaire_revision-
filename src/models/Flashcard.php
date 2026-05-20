@@ -4,22 +4,40 @@
  */
 
 class Flashcard {
+    public ?int $id;
+    public int $proprietaire;
+    public ?int $matiereId;
+    public string $title;
+    public string $subject;
+    public string $theme;
+    public DateTime $createdAt;
+    public DateTime $updatedAt;
 
-    private int $id;
-    private int $proprietaire;
-    private string $title;
-    private string $subject;
-    private string $theme;
-    private DateTime $created_at;
-    private DateTime $updated_at;
+    public function __construct(array $data = []) {
+        $this->id = isset($data['id']) ? (int)$data['id'] : null;
+        $this->proprietaire = isset($data['proprietaire']) ? (int)$data['proprietaire'] : 0;
+        $this->matiereId = isset($data['matiereId']) ? (int)$data['matiereId'] : null;
+        $this->title = $data['title'] ?? '';
+        $this->subject = $data['subject'] ?? '';
+        $this->theme = $data['theme'] ?? '';
+        $this->createdAt = $data['createdAt'] instanceof DateTime
+            ? $data['createdAt']
+            : new DateTime($data['createdAt'] ?? 'now');
+        $this->updatedAt = $data['updatedAt'] instanceof DateTime
+            ? $data['updatedAt']
+            : new DateTime($data['updatedAt'] ?? 'now');
+    }
 
-    public function __construct(int $id, int $proprietaire, string $title, string $subject, string $theme, DateTime $created_at, DateTime $updated_at) {
-        $this->id = $id;
-        $this->proprietaire = $proprietaire;
-        $this->title = $title;
-        $this->subject = $subject;
-        $this->theme = $theme;
-        $this->created_at = $created_at;
-        $this->updated_at = $updated_at;
+    public function toArray(): array {
+        return [
+            'id' => $this->id,
+            'proprietaire' => $this->proprietaire,
+            'matiereId' => $this->matiereId,
+            'title' => $this->title,
+            'subject' => $this->subject,
+            'theme' => $this->theme,
+            'createdAt' => $this->createdAt->format('Y-m-d H:i:s'),
+            'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
+        ];
     }
 }
