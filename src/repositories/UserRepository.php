@@ -16,11 +16,11 @@ class UserRepository {
 		if (!$row) return null;
 		return new User([
 			'id' => (int)$row['id'],
-			'firstName' => $row['firstName'],
-			'lastName' => $row['lastName'],
+			'firstName' => $row['firstname'],
+			'lastName' => $row['lastname'],
 			'email' => $row['email'],
-			'passwordHash' => $row['passwordHash'],
-			'createdAt' => $row['createdAt'],
+			'passwordHash' => $row['password_hash'],
+			'createdAt' => $row['created_at'],
 		]);
 	}
 
@@ -31,24 +31,24 @@ class UserRepository {
 		if (!$row) return null;
 		return new User([
 			'id' => (int)$row['id'],
-			'firstName' => $row['firstName'],
-			'lastName' => $row['lastName'],
+			'firstName' => $row['firstname'],
+			'lastName' => $row['lastname'],
 			'email' => $row['email'],
-			'passwordHash' => $row['passwordHash'],
-			'createdAt' => $row['createdAt'],
+			'passwordHash' => $row['password_hash'],
+			'createdAt' => $row['created_at'],
 		]);
 	}
 
 	public function create(User $user): int {
-		$stmt = $this->pdo->prepare('INSERT INTO users (firstName, lastName, email, passwordHash, createdAt) VALUES (:firstName, :lastName, :email, :passwordHash, :createdAt)');
+		$stmt = $this->pdo->prepare('INSERT INTO users (firstname, lastname, email, password_hash, created_at) VALUES (:firstname, :lastname, :email, :password_hash, :created_at) RETURNING id');
 		$stmt->execute([
-			'firstName' => $user->firstName,
-			'lastName' => $user->lastName,
+			'firstname' => $user->firstName,
+			'lastname' => $user->lastName,
 			'email' => $user->email,
-			'passwordHash' => $user->passwordHash,
-			'createdAt' => $user->createdAt,
+			'password_hash' => $user->passwordHash,
+			'created_at' => $user->createdAt,
 		]);
 
-		return (int)$this->pdo->lastInsertId();
+		return (int)$stmt->fetchColumn();
 	}
 }

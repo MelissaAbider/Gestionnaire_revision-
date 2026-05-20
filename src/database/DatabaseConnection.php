@@ -7,11 +7,17 @@ class DatabaseConnection {
 	private \PDO $pdo;
 
 	private function __construct() {
-		// Configure via env vars if present, otherwise use sqlite file
-		$dsn = getenv('DB_DSN') ?: 'sqlite:' . __DIR__ . '/database.sqlite';
-		$user = getenv('DB_USER') ?: null;
-		$pass = getenv('DB_PASS') ?: null;
+        $config = [];
+        $configFile = __DIR__ . '/../config.php';
+        if (file_exists($configFile)) {
+            $config = require $configFile;
+        }
 
+        // Configure via config.php first, then env vars, otherwise use sqlite file
+        $dsn = $config['dsn'] ?? getenv('DB_DSN') ?: 'sqlite:' . __DIR__ . '/database.sqlite';
+        $user = $config['user'] ?? getenv('DB_USER') ?: null;
+        $pass = $config['pass'] ?? getenv('DB_PASS') ?: null;
+        
 		$options = [
 			\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 			\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
