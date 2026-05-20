@@ -36,7 +36,7 @@ class FlashCardPartage {
 							<span class="nav-icon">⌂</span>
 							<span>Accueil</span>
 						</a>
-						<a href="#" class="nav-item">
+						<a href="?action=flashcards" class="nav-item">
 							<span class="nav-icon">□</span>
 							<span>Mes fiches</span>
 						</a>

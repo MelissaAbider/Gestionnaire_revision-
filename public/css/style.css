@@ -2128,15 +2128,22 @@ body {
     gap: 10px;
 }
 
+.inline-delete-form {
+    margin: 0;
+}
+
 .action-button {
     width: 36px;
     height: 36px;
     display: inline-grid;
     place-items: center;
     border-radius: 8px;
+    border: 0;
     text-decoration: none;
     font-size: 18px;
     font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
 }
 
 .action-button.edit {

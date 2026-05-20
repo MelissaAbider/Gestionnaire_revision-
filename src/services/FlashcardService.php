@@ -175,6 +175,14 @@ class FlashcardService {
         return ['success' => true, 'id' => $id];
     }
 
+    public function deleteForUser(int $id, int $ownerId): bool {
+        if ($id <= 0) {
+            return false;
+        }
+
+        return $this->flashcardRepo->deleteForUser($id, $ownerId);
+    }
+
     /**
      * @return array<string, mixed>|null
      */

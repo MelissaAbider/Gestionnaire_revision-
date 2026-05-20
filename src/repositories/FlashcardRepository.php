@@ -197,6 +197,36 @@ class FlashcardRepository {
         ];
     }
 
+    public function deleteForUser(int $id, int $ownerId): bool {
+        if (!$this->findByIdForUser($id, $ownerId)) {
+            return false;
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare('DELETE FROM shares WHERE flashcard_id = :flashcard_id');
+            $stmt->execute(['flashcard_id' => $id]);
+
+            $stmt = $this->pdo->prepare('DELETE FROM question_responses WHERE flashcard_id = :flashcard_id');
+            $stmt->execute(['flashcard_id' => $id]);
+
+            $stmt = $this->pdo->prepare('DELETE FROM flashcards WHERE id = :id AND owner_id = :owner_id');
+            $stmt->execute([
+                'id' => $id,
+                'owner_id' => $ownerId,
+            ]);
+
+            $deleted = $stmt->rowCount() > 0;
+            $this->pdo->commit();
+
+            return $deleted;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     /**
      * @return Flashcard[]
      */

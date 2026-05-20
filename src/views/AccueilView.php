@@ -149,7 +149,7 @@ class AccueilView {
 						<section class="quick-panel">
 							<h2>Actions rapides</h2>
 							<div class="quick-list">
-								<a class="quick-item" href="#">
+								<a class="quick-item" href="?action=createFlashcard">
 									<span class="quick-icon purple">+</span>
 									<span>
 										<strong>Creer une fiche</strong>

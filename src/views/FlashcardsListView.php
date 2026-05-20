@@ -167,7 +167,10 @@ class FlashcardsListView {
 										<td>
 											<div class="action-buttons">
 												<a href="?action=editFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="action-button edit" aria-label="Modifier <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">✎</a>
-												<a href="#" class="action-button delete" aria-label="Supprimer <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">⌫</a>
+												<form class="inline-delete-form" method="POST" action="?action=deleteFlashcard" onsubmit="return confirm('Supprimer cette fiche de revision ?');">
+													<input type="hidden" name="id" value="<?= (int)($flashcard['id'] ?? 0) ?>">
+													<button type="submit" class="action-button delete" aria-label="Supprimer <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">⌫</button>
+												</form>
 											</div>
 										</td>
 									</tr>

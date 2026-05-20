@@ -36,6 +36,9 @@ class Router {
 			case 'updateFlashcard':
 				$this->updateFlashcard();
 				break;
+			case 'deleteFlashcard':
+				$this->deleteFlashcard();
+				break;
 			case 'register':
 				$authController->registerForm();
 				break;
@@ -255,6 +258,31 @@ class Router {
 		}
 
 		$this->renderFlashcardForm($id, $result['data'], $result['errors']);
+	}
+
+	private function deleteFlashcard(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$user = $this->requireUser();
+		$id = (int)($_POST['id'] ?? 0);
+
+		if ($id <= 0) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$flashcardService = new FlashcardService();
+		try {
+			$flashcardService->deleteForUser($id, (int)$user->id);
+		} catch (\Throwable $e) {
+			$GLOBALS['flashcardLoadError'] = 'Impossible de supprimer cette fiche.';
+		}
+
+		header('Location: ?action=flashcards');
+		exit;
 	}
 
 	private function createMatiere(): void {
