@@ -4,5 +4,30 @@
  */
 
 class User {
-    
+	public ?int $id;
+	public string $firstName;
+	public string $lastName;
+	public string $email;
+	public string $passwordHash;
+	public string $createdAt;
+
+	public function __construct(array $data = []) {
+		$this->id = $data['id'] ?? null;
+		$this->firstName = $data['firstName'] ?? '';
+		$this->lastName = $data['lastName'] ?? '';
+		$this->email = $data['email'] ?? '';
+		$this->passwordHash = $data['passwordHash'] ?? '';
+		$this->createdAt = $data['createdAt'] ?? date('Y-m-d H:i:s');
+	}
+
+	public function toArray(): array {
+		return [
+			'id' => $this->id,
+			'firstName' => $this->firstName,
+			'lastName' => $this->lastName,
+			'email' => $this->email,
+			'passwordHash' => $this->passwordHash,
+			'createdAt' => $this->createdAt,
+		];
+	}
 }
