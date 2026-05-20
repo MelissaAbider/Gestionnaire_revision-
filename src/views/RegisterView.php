@@ -18,18 +18,28 @@ class RegisterView {
             <title>Inscription - Gestionnaire de Révision</title>
             <link rel="stylesheet" href="/css/style.css">
         </head>
-        <body>
-            <div class="register-container">
-                <div class="register-box">
-                    <div class="register-header">
-                        <h1>Inscription</h1>
-                        <p>Créez votre compte pour commencer</p>
+        <body class="auth-body">
+            <main class="auth-card auth-card-register">
+                <section class="auth-brand-panel">
+                    <div class="auth-brand-content">
+                        <div class="auth-logo">
+                            <span class="auth-logo-icon">F</span>
+                            <span>FlashMind</span>
+                        </div>
+                        <p>Rejoignez des milliers<br>d'etudiants motives.</p>
+                    </div>
+                </section>
+
+                <section class="auth-form-panel">
+                    <div class="auth-header">
+                        <h1>Créer un compte</h1>
+                        <p>Inscription rapide et gratuite</p>
                     </div>
 
                     <?php $errors = $GLOBALS['registerErrors'] ?? []; ?>
                     <?php $old = $_POST ?? []; ?>
                     <?php if (!empty($errors)): ?>
-                        <div style="color: var(--error); margin-bottom: 12px; text-align:center;">
+                        <div class="auth-error">
                             <ul style="list-style:none; padding:0; margin:0;">
                                 <?php foreach ($errors as $e): ?>
                                     <li><?= htmlspecialchars($e) ?></li>
@@ -38,8 +48,9 @@ class RegisterView {
                         </div>
                     <?php endif; ?>
 
-                    <form class="register-form" method="POST" action="?action=registerSubmit">
-                        <div class="form-group">
+                    <form class="auth-form" method="POST" action="?action=registerSubmit">
+                        <div class="auth-name-grid">
+                            <div class="form-group">
                             <label for="firstName">Prénom</label>
                             <input 
                                 type="text" 
@@ -49,9 +60,9 @@ class RegisterView {
                                 value="<?= htmlspecialchars($old['firstName'] ?? '') ?>"
                                 required
                             >
-                        </div>
+                            </div>
 
-                        <div class="form-group">
+                            <div class="form-group">
                             <label for="lastName">Nom</label>
                             <input 
                                 type="text" 
@@ -61,6 +72,7 @@ class RegisterView {
                                 value="<?= htmlspecialchars($old['lastName'] ?? '') ?>"
                                 required
                             >
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -81,10 +93,9 @@ class RegisterView {
                                 type="password" 
                                 id="password" 
                                 name="password" 
-                                placeholder="Entrez votre mot de passe" 
+                                placeholder="Au moins 8 caractères" 
                                 required
                             >
-                            <small class="password-hint">Au minimum 8 caractères</small>
                         </div>
 
                         <div class="form-group">
@@ -98,14 +109,19 @@ class RegisterView {
                             >
                         </div>
 
+                        <label class="remember-choice terms-choice">
+                            <input type="checkbox" name="terms" required>
+                            <span>J'accepte les <a href="#">conditions d'utilisation</a></span>
+                        </label>
+
                         <button type="submit" class="btn-submit">S'inscrire</button>
                     </form>
 
                     <div class="login-link">
-                        <p>Avez-vous déjà un compte ? <a href="?action=login">Connectez-vous ici</a></p>
+                        <p>Déjà un compte ? <a href="?action=login">Se connecter</a></p>
                     </div>
-                </div>
-            </div>
+                </section>
+            </main>
         </body>
         </html>
         <?php

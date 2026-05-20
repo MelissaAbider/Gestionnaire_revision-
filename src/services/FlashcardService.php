@@ -49,4 +49,8 @@ class FlashcardService {
     public function findByMatiereForUser(int $matiereId, int $ownerId): array {
         return $this->flashcardRepo->findByMatiereForUser($matiereId, $ownerId);
     }
+
+    public function findRecentActivityForUser(int $ownerId, int $limit = 5): array {
+        return $this->flashcardRepo->findRecentActivityForUser($ownerId, $limit);
+    }
 }

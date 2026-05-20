@@ -61,4 +61,28 @@ class FlashcardRepository {
             $stmt->fetchAll()
         );
     }
+
+    public function findRecentActivityForUser(int $ownerId, int $limit = 5): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT
+                f.id,
+                f.title,
+                f.subject,
+                f.theme,
+                f.created_at,
+                f.updated_at,
+                COALESCE(m.name, f.subject, \'Sans matiere\') AS matiere_name,
+                COALESCE(m.color, \'blue\') AS matiere_color
+            FROM flashcards f
+            LEFT JOIN matieres m ON m.id = f.matiere_id
+            WHERE f.owner_id = :owner_id
+            ORDER BY f.updated_at DESC, f.created_at DESC
+            LIMIT :limit'
+        );
+        $stmt->bindValue(':owner_id', $ownerId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }
