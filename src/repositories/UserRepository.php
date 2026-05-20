@@ -51,4 +51,19 @@ class UserRepository {
 
 		return (int)$stmt->fetchColumn();
 	}
+
+	/**
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function findShareCandidates(int $currentUserId): array {
+		$stmt = $this->pdo->prepare(
+			'SELECT id, firstname, lastname, email
+			FROM users
+			WHERE id <> :current_user_id
+			ORDER BY firstname ASC, lastname ASC, email ASC'
+		);
+		$stmt->execute(['current_user_id' => $currentUserId]);
+
+		return $stmt->fetchAll();
+	}
 }

@@ -1,5 +1,6 @@
 # Fichiers de configuration
 config.php
+src/config.php
 
 # Dépendances
 /vendor/

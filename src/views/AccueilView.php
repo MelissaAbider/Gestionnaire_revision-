@@ -24,7 +24,7 @@ class AccueilView {
 		<head>
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Accueil - Gestionnaire de Revision</title>
+			<title>Accueil - Gestionnaire de Révision</title>
 			<link rel="stylesheet" href="/css/style.css">
 		</head>
 		<body class="home-body dashboard-home" data-session-timeout="1200">
@@ -40,23 +40,23 @@ class AccueilView {
 							<span class="nav-icon">⌂</span>
 							<span>Accueil</span>
 						</a>
-						<a href="#" class="nav-item">
+						<a href="?action=flashcards" class="nav-item">
 							<span class="nav-icon">□</span>
 							<span>Mes fiches</span>
 						</a>
 						<a href="?action=partagees" class="nav-item">
 							<span class="nav-icon">↗</span>
-							<span>Partagees avec moi</span>
+							<span>Partagées avec moi</span>
 						</a>
 						<a href="?action=matieres" class="nav-item">
 							<span class="nav-icon">▣</span>
-							<span>Matieres</span>
+							<span>Matières</span>
 						</a>
 					</nav>
 
 					<a href="?action=logout" class="nav-item logout-link">
 						<span class="nav-icon">⇥</span>
-						<span>Deconnexion</span>
+						<span>Déconnexion</span>
 					</a>
 				</aside>
 
