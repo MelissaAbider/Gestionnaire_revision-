@@ -4,10 +4,12 @@
  */
 
 class FlashcardFactory {
+    // Crée une instance de Flashcard à partir d'un tableau de données
     public static function fromArray(array $data): Flashcard {
         return new Flashcard($data);
     }
 
+    // Crée une instance de Flashcard à partir d'une ligne de la base de données
     public static function fromDatabaseRow(array $row): Flashcard {
         return new Flashcard([
             'id' => $row['id'] ?? null,

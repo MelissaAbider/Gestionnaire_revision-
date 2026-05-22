@@ -4,9 +4,8 @@
  */
 
 class UserFactory {
-	/**
-	 * Crée un User à partir d'un tableau (ex: $_POST)
-	 */
+	
+	// Crée une instance de User à partir d'un tableau de données
 	public static function fromArray(array $data): User {
 		$userData = [
 			'firstName' => trim($data['firstName'] ?? ''),

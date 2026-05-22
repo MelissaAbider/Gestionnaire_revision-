@@ -36,6 +36,7 @@ class ShareRepository {
                 f.id AS flashcard_id,
                 f.title,
                 f.subject,
+                COUNT(qr.id) AS question_count,
                 COALESCE(m.name, f.subject, \'Sans matiere\') AS matiere_name,
                 COALESCE(m.color, \'blue\') AS matiere_color,
                 u.id AS owner_id,
@@ -46,7 +47,9 @@ class ShareRepository {
             INNER JOIN flashcards f ON f.id = s.flashcard_id
             INNER JOIN users u ON u.id = f.owner_id
             LEFT JOIN matieres m ON m.id = f.matiere_id
+            LEFT JOIN question_responses qr ON qr.flashcard_id = f.id
             WHERE ' . implode(' AND ', $where) . '
+            GROUP BY s.id, s.shared_at, f.id, f.title, f.subject, m.name, m.color, u.id, u.firstname, u.lastname, u.email
             ORDER BY ' . $orderBy
         );
         $stmt->execute($params);

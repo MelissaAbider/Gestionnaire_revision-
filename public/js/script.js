@@ -2,39 +2,43 @@
  * Script JavaScript principal
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.querySelector('#flashcard-search');
-    const rows = Array.from(document.querySelectorAll('[data-flashcard-row]'));
-    const emptyRow = document.querySelector('[data-search-empty]');
-
     const normalize = (value) => value
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .trim();
 
-    if (searchInput && rows.length > 0) {
-        const filterRows = () => {
+    document.querySelectorAll('[data-live-search]').forEach((searchInput) => {
+        const listName = searchInput.dataset.liveSearch || '';
+        const cards = Array.from(document.querySelectorAll(`[data-live-card="${listName}"]`));
+        const emptyState = document.querySelector(`[data-live-empty="${listName}"]`);
+
+        if (cards.length === 0 && !emptyState) {
+            return;
+        }
+
+        const filterCards = () => {
             const query = normalize(searchInput.value);
-            let visibleRows = 0;
+            let visibleCards = 0;
 
-            rows.forEach((row) => {
-                const title = normalize(row.dataset.flashcardTitle || '');
-                const isVisible = query === '' || title.includes(query);
+            cards.forEach((card) => {
+                const text = normalize(card.dataset.liveText || '');
+                const isVisible = query === '' || text.includes(query);
 
-                row.hidden = !isVisible;
+                card.hidden = !isVisible;
                 if (isVisible) {
-                    visibleRows += 1;
+                    visibleCards += 1;
                 }
             });
 
-            if (emptyRow) {
-                emptyRow.hidden = visibleRows > 0 || query === '';
+            if (emptyState) {
+                emptyState.hidden = visibleCards > 0;
             }
         };
 
-        searchInput.addEventListener('input', filterRows);
-        filterRows();
-    }
+        searchInput.addEventListener('input', filterCards);
+        filterCards();
+    });
 
     const titleInput = document.querySelector('#flashcard-title');
     const titleCount = document.querySelector('[data-title-count]');

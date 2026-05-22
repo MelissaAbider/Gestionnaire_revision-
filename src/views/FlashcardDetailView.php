@@ -31,7 +31,7 @@ class FlashcardDetailView {
 					if ($isOwner):
 					?>
 						<div class="detail-owner-actions">
-							<a href="?action=editFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="secondary-button">Modifier</a>
+							<a href="?action=flashcardForm&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="secondary-button">Modifier</a>
 							<form method="POST" action="?action=deleteFlashcard" onsubmit="return confirm('Supprimer cette fiche de revision ?');">
 								<input type="hidden" name="id" value="<?= (int)($flashcard['id'] ?? 0) ?>">
 								<button class="danger-button" type="submit">Supprimer</button>

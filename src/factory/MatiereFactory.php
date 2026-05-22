@@ -3,10 +3,12 @@
  * Factory pour creer des matieres
  */
 class MatiereFactory {
+	// Crée une instance de Matiere à partir d'un tableau de données
 	public static function fromArray(array $data): Matiere {
 		return new Matiere($data);
 	}
 
+	// Crée une instance de Matiere à partir d'une ligne de la base de données
 	public static function fromDatabaseRow(array $row): Matiere {
 		return new Matiere([
 			'id' => $row['id'] ?? null,

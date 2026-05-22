@@ -110,7 +110,7 @@ class AccueilView {
 						<section class="quick-panel">
 							<h2>Actions rapides</h2>
 							<div class="quick-list">
-								<a class="quick-item" href="?action=createFlashcard">
+								<a class="quick-item" href="?action=flashcardForm">
 									<span class="quick-icon purple">+</span>
 									<span>
 										<strong>Creer une fiche</strong>
@@ -126,7 +126,7 @@ class AccueilView {
 									</span>
 									<em>›</em>
 								</a>
-								<a class="quick-item" href="?action=partagees">
+								<a class="quick-item" href="?action=flashcards">
 									<span class="quick-icon orange">♧</span>
 									<span>
 										<strong>Fiches partagees avec moi</strong>

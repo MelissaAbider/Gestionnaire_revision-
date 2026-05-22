@@ -15,6 +15,7 @@ class AuthService {
 		$this->expireInactiveSession();
 	}
 
+	// Fonction pour que l'utilisateur s'inscrive
 	public function register(array $data): array {
 		// validation simple
 		$errors = [];
@@ -73,6 +74,7 @@ class AuthService {
 		$this->destroySession();
 	}
 
+	//Récupère l'utilisateur actuellement connecté en vérifiant la session
 	public function getCurrentUser(): ?User {
 		if (!empty($_SESSION['user_id'])) {
 			$this->markSessionActivity();
@@ -81,6 +83,7 @@ class AuthService {
 		return null;
 	}
 
+	//Si l'utilisateur est inactif alors la session se détruit 
 	private function expireInactiveSession(): void {
 		if (empty($_SESSION['user_id'])) {
 			return;
@@ -101,6 +104,7 @@ class AuthService {
 		}
 	}
 
+	//détruit la session en vidant les données et en supprimant le cookie de session
 	private function destroySession(): void {
 		$_SESSION = [];
 
