@@ -11,7 +11,7 @@ class FlashcardFormView {
 		$matieres = $GLOBALS['flashcardFormMatieres'] ?? [];
 		$users = $GLOBALS['flashcardFormUsers'] ?? [];
 		$isEdit = $mode === 'edit';
-		$action = $isEdit ? '?action=updateFlashcard' : '?action=storeFlashcard';
+		$action = '?action=flashcardForm';
 		$selectedUsers = array_map('intval', $data['sharedUserIds'] ?? []);
 		$questionResponses = $data['questionResponses'] ?? $this->questionResponsesFromPostArrays($data);
 		if (empty($questionResponses)) {
@@ -23,7 +23,7 @@ class FlashcardFormView {
 		<head>
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title><?= $isEdit ? 'Modifier' : 'Créer' ?> une fiche - Gestionnaire de Révision</title>
+			<title>Fiche de révision - Gestionnaire de Révision</title>
 			<link rel="stylesheet" href="/css/style.css">
 			<script src="/js/script.js" defer></script>
 		</head>
@@ -35,18 +35,16 @@ class FlashcardFormView {
 					<?php
 					PageHeaderView::render(
 						$user,
-						$isEdit ? 'Modifier la fiche' : 'Créer une fiche',
-						$isEdit ? 'Mettez a jour le titre, les questions/reponses et les utilisateurs partages.' : 'Ajoutez une nouvelle fiche avec ses questions/reponses et choisissez avec qui la partager.',
+						'Fiche de révision',
+						'Renseignez le titre, les questions/reponses et les utilisateurs partages.',
 						'',
 						'?action=flashcards',
 						'Mes fiches'
 					);
 					?>
 
-					<form class="flashcard-editor" method="POST" action="<?= $this->e($action) ?>" novalidate>
-						<?php if ($isEdit): ?>
-							<input type="hidden" name="id" value="<?= (int)($data['id'] ?? 0) ?>">
-						<?php endif; ?>
+					<form class="flashcard-editor" method="POST" action="<?= $this->e($action) ?>" data-flashcard-form novalidate>
+						<input type="hidden" name="id" value="<?= $isEdit ? (int)($data['id'] ?? 0) : '' ?>">
 
 						<?php if (!empty($errors['_form'])): ?>
 							<div class="form-error-banner"><?= $this->e($errors['_form']) ?></div>
@@ -72,6 +70,7 @@ class FlashcardFormView {
 									<?php endif; ?>
 									<span data-title-count>0/150</span>
 								</div>
+								<span class="field-error" data-error-for="title"></span>
 							</div>
 
 							<div class="form-field">
@@ -127,6 +126,7 @@ class FlashcardFormView {
 								<?php if (isset($errors['questionResponses'])): ?>
 									<span class="field-error"><?= $this->e($errors['questionResponses']) ?></span>
 								<?php endif; ?>
+								<span class="field-error" data-error-for="questionResponses"></span>
 							</div>
 						</div>
 
@@ -175,7 +175,7 @@ class FlashcardFormView {
 						<div class="form-actions">
 							<a class="secondary-button" href="?action=flashcards">Annuler</a>
 							<button class="primary-button" type="submit">
-								<?= $isEdit ? 'Enregistrer' : 'Créer la fiche' ?>
+								Enregistrer la fiche
 							</button>
 						</div>
 					</form>

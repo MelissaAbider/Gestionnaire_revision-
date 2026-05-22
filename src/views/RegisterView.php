@@ -48,9 +48,9 @@ class RegisterView {
                         </div>
                     <?php endif; ?>
 
-                    <form class="auth-form" method="POST" action="?action=registerSubmit">
+                    <form class="auth-form" method="POST" action="?action=registerSubmit" data-register-form novalidate>
                         <div class="auth-name-grid">
-                            <div class="form-group">
+                            <div class="form-group <?= isset($errors['firstName']) ? 'has-error' : '' ?>">
                             <label for="firstName">Prénom</label>
                             <input 
                                 type="text" 
@@ -60,9 +60,10 @@ class RegisterView {
                                 value="<?= htmlspecialchars($old['firstName'] ?? '') ?>"
                                 required
                             >
+                            <span class="auth-field-error" data-error-for="firstName"><?= htmlspecialchars($errors['firstName'] ?? '') ?></span>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group <?= isset($errors['lastName']) ? 'has-error' : '' ?>">
                             <label for="lastName">Nom</label>
                             <input 
                                 type="text" 
@@ -72,10 +73,11 @@ class RegisterView {
                                 value="<?= htmlspecialchars($old['lastName'] ?? '') ?>"
                                 required
                             >
+                            <span class="auth-field-error" data-error-for="lastName"><?= htmlspecialchars($errors['lastName'] ?? '') ?></span>
                             </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group <?= isset($errors['email']) ? 'has-error' : '' ?>">
                             <label for="email">Email</label>
                             <input 
                                 type="email" 
@@ -85,20 +87,37 @@ class RegisterView {
                                 value="<?= htmlspecialchars($old['email'] ?? '') ?>"
                                 required
                             >
+                            <span class="auth-field-error" data-error-for="email"><?= htmlspecialchars($errors['email'] ?? '') ?></span>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group <?= isset($errors['birthDate']) ? 'has-error' : '' ?>">
+                            <label for="birthDate">Date de naissance</label>
+                            <input
+                                type="text"
+                                id="birthDate"
+                                name="birthDate"
+                                placeholder="AAAAMMJJ"
+                                value="<?= htmlspecialchars($old['birthDate'] ?? '') ?>"
+                                inputmode="numeric"
+                                maxlength="8"
+                                required
+                            >
+                            <span class="auth-field-error" data-error-for="birthDate"><?= htmlspecialchars($errors['birthDate'] ?? '') ?></span>
+                        </div>
+
+                        <div class="form-group <?= isset($errors['password']) ? 'has-error' : '' ?>">
                             <label for="password">Mot de passe</label>
                             <input 
                                 type="password" 
                                 id="password" 
                                 name="password" 
-                                placeholder="Au moins 8 caractères" 
+                                placeholder="Au moins 6 caractères" 
                                 required
                             >
+                            <span class="auth-field-error" data-error-for="password"><?= htmlspecialchars($errors['password'] ?? '') ?></span>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group <?= isset($errors['confirmPassword']) ? 'has-error' : '' ?>">
                             <label for="confirmPassword">Confirmez le mot de passe</label>
                             <input 
                                 type="password" 
@@ -107,6 +126,7 @@ class RegisterView {
                                 placeholder="Confirmez votre mot de passe" 
                                 required
                             >
+                            <span class="auth-field-error" data-error-for="confirmPassword"><?= htmlspecialchars($errors['confirmPassword'] ?? '') ?></span>
                         </div>
 
                         <label class="remember-choice terms-choice">
@@ -122,6 +142,7 @@ class RegisterView {
                     </div>
                 </section>
             </main>
+            <script src="/js/script.js" defer></script>
         </body>
         </html>
         <?php

@@ -15,22 +15,43 @@ class AuthService {
 		$this->expireInactiveSession();
 	}
 
+	// Fonction pour que l'utilisateur s'inscrive
 	public function register(array $data): array {
 		// validation simple
 		$errors = [];
 		$first = trim($data['firstName'] ?? '');
 		$last = trim($data['lastName'] ?? '');
 		$email = strtolower(trim($data['email'] ?? ''));
+		$birthDate = trim($data['birthDate'] ?? '');
 		$password = $data['password'] ?? '';
 		$confirm = $data['confirmPassword'] ?? '';
 
-		if ($first === '') $errors[] = 'Le prénom est requis.';
-		if ($last === '') $errors[] = 'Le nom est requis.';
-		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
-		if (strlen($password) < 8) $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
-		if ($password !== $confirm) $errors[] = 'Les mots de passe ne correspondent pas.';
+		if ($first === '') $errors['firstName'] = 'Le prénom est requis.';
+		if ($last === '') $errors['lastName'] = 'Le nom est requis.';
+		if ($email === '') {
+			$errors['email'] = 'Le mail est requis.';
+		} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$errors['email'] = 'Le mail doit respecter le format login@domaine.extension.';
+		}
+		if ($birthDate === '') {
+			$errors['birthDate'] = 'La date de naissance est requise.';
+		} elseif (!$this->isValidBirthDate($birthDate)) {
+			$errors['birthDate'] = 'La date de naissance doit respecter le format AAAAMMJJ.';
+		}
+		if ($password === '') {
+			$errors['password'] = 'Le mot de passe est requis.';
+		} elseif (strlen($password) < 6) {
+			$errors['password'] = 'Le mot de passe doit contenir au moins 6 caractères.';
+		}
+		if ($confirm === '') {
+			$errors['confirmPassword'] = 'La confirmation du mot de passe est requise.';
+		} elseif ($password !== $confirm) {
+			$errors['confirmPassword'] = 'Les mots de passe ne correspondent pas.';
+		}
 
-		if ($this->userRepo->findByEmail($email)) $errors[] = 'Un utilisateur existe déjà avec cet email.';
+		if (!isset($errors['email']) && $this->userRepo->findByEmail($email)) {
+			$errors['email'] = 'Un utilisateur existe déjà avec cet email.';
+		}
 
 		if (!empty($errors)) return ['success' => false, 'errors' => $errors];
 
@@ -41,6 +62,7 @@ class AuthService {
 			'firstName' => $first,
 			'lastName' => $last,
 			'email' => $email,
+			'birthDate' => $birthDate,
 			'passwordHash' => $hash,
 		]);
 
@@ -48,11 +70,19 @@ class AuthService {
 		$id = $this->userRepo->create($user);
 		$user->id = $id;
 
-		// auto-login
-		$_SESSION['user_id'] = $user->id;
-		$this->markSessionActivity();
-
 		return ['success' => true, 'user' => $user];
+	}
+
+	private function isValidBirthDate(string $birthDate): bool {
+		if (!preg_match('/^\d{8}$/', $birthDate)) {
+			return false;
+		}
+
+		$year = (int)substr($birthDate, 0, 4);
+		$month = (int)substr($birthDate, 4, 2);
+		$day = (int)substr($birthDate, 6, 2);
+
+		return checkdate($month, $day, $year);
 	}
 
 	public function login(string $email, string $password): array {
@@ -73,6 +103,7 @@ class AuthService {
 		$this->destroySession();
 	}
 
+	//Récupère l'utilisateur actuellement connecté en vérifiant la session
 	public function getCurrentUser(): ?User {
 		if (!empty($_SESSION['user_id'])) {
 			$this->markSessionActivity();
@@ -81,6 +112,7 @@ class AuthService {
 		return null;
 	}
 
+	//Si l'utilisateur est inactif alors la session se détruit 
 	private function expireInactiveSession(): void {
 		if (empty($_SESSION['user_id'])) {
 			return;
@@ -101,6 +133,7 @@ class AuthService {
 		}
 	}
 
+	//détruit la session en vidant les données et en supprimant le cookie de session
 	private function destroySession(): void {
 		$_SESSION = [];
 

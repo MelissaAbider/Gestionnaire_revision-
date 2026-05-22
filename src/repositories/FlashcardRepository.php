@@ -12,13 +12,15 @@ class FlashcardRepository {
         $this->questionResponseRepo = new QuestionResponseRepository();
     }
 
+    //Créer une nouvelle flashcard dans la base de données.
     public function create(Flashcard $flashcard): int {
+        //on récupére l'objet de la connexion à la base de données et on démarre une transaction pour garantir l'intégrité des données lors de l'insertion de la flashcard et de ses questions/réponses associées.
         $this->pdo->beginTransaction();
 
         try {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
-                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
+                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, NULL)
                 RETURNING id'
             );
             $stmt->execute([
@@ -27,7 +29,6 @@ class FlashcardRepository {
                 'title' => $flashcard->title,
                 'subject' => $flashcard->subject,
                 'created_at' => $flashcard->createdAt->format('Y-m-d H:i:s'),
-                'updated_at' => $flashcard->updatedAt->format('Y-m-d H:i:s'),
             ]);
 
             $id = (int)$stmt->fetchColumn();
@@ -60,7 +61,7 @@ class FlashcardRepository {
             if ($this->columnExists('flashcards', 'matiere_id')) {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
-                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
+                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, NULL)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -69,12 +70,11 @@ class FlashcardRepository {
                     'title' => $title,
                     'subject' => $matiereName,
                     'created_at' => $now,
-                    'updated_at' => $now,
                 ]);
             } else {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO flashcards (owner_id, title, subject, created_at, updated_at)
-                    VALUES (:owner_id, :title, :subject, :created_at, :updated_at)
+                    VALUES (:owner_id, :title, :subject, :created_at, NULL)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -82,7 +82,6 @@ class FlashcardRepository {
                     'title' => $title,
                     'subject' => $matiereName,
                     'created_at' => $now,
-                    'updated_at' => $now,
                 ]);
             }
 
@@ -405,21 +404,27 @@ class FlashcardRepository {
         if ($hasMatiereRelation) {
             $stmt = $this->pdo->prepare(
                 'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COUNT(qr.id) AS question_count,
                     COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     COALESCE(m.color, \'blue\') AS matiere_color
                 FROM flashcards f
                 LEFT JOIN matieres m ON m.id = f.matiere_id AND m.owner_id = f.owner_id
+                LEFT JOIN question_responses qr ON qr.flashcard_id = f.id
                 WHERE f.owner_id = :owner_id
-                ORDER BY f.created_at DESC, f.id DESC'
+                GROUP BY f.id, f.title, f.subject, f.created_at, f.updated_at, m.name, m.color
+                ORDER BY COALESCE(f.updated_at, f.created_at) DESC, f.created_at DESC, f.id DESC'
             );
         } else {
             $stmt = $this->pdo->prepare(
                 'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COUNT(qr.id) AS question_count,
                     COALESCE(NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     \'blue\' AS matiere_color
                 FROM flashcards f
+                LEFT JOIN question_responses qr ON qr.flashcard_id = f.id
                 WHERE f.owner_id = :owner_id
-                ORDER BY f.created_at DESC, f.id DESC'
+                GROUP BY f.id, f.title, f.subject, f.created_at, f.updated_at
+                ORDER BY COALESCE(f.updated_at, f.created_at) DESC, f.created_at DESC, f.id DESC'
             );
         }
 
@@ -435,6 +440,7 @@ class FlashcardRepository {
                     'id' => $id,
                     'title' => $row['title'] ?? '',
                     'subject' => $row['subject'] ?? '',
+                    'question_count' => (int)($row['question_count'] ?? 0),
                     'created_at' => $row['created_at'] ?? null,
                     'updated_at' => $row['updated_at'] ?? null,
                     'matiere_name' => $row['matiere_name'] ?? 'Sans matière',

@@ -109,17 +109,24 @@ class FlashcardService {
 
         usort($filtered, function (array $left, array $right) use ($sort): int {
             if ($sort === 'oldest') {
-                return strcmp((string)($left['created_at'] ?? ''), (string)($right['created_at'] ?? ''));
+                return strcmp($this->activityDate($left), $this->activityDate($right));
             }
 
             if ($sort === 'title') {
                 return strcasecmp((string)($left['title'] ?? ''), (string)($right['title'] ?? ''));
             }
 
-            return strcmp((string)($right['created_at'] ?? ''), (string)($left['created_at'] ?? ''));
+            return strcmp($this->activityDate($right), $this->activityDate($left));
         });
 
         return $filtered;
+    }
+
+    /**
+     * @param array<string, mixed> $flashcard
+     */
+    private function activityDate(array $flashcard): string {
+        return (string)($flashcard['updated_at'] ?? $flashcard['created_at'] ?? '');
     }
 
     /**
@@ -278,9 +285,7 @@ class FlashcardService {
         return $errors;
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
+    // normalise les données de question/réponse provenant du formulaire, en gérant à la fois les formats "questionResponses" et "questions"/"responses"
     private function normalizeQuestionResponses(array $data): array {
         if (isset($data['questionResponses']) && is_array($data['questionResponses'])) {
             $questionResponses = [];

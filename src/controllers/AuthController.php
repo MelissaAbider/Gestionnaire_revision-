@@ -19,8 +19,8 @@ class AuthController {
 	public function registerSubmit(): void {
 		$result = $this->authService->register($_POST);
 		if ($result['success']) {
-			//Redirige vers le tableau de bord après une inscription réussi
-			header('Location: ?action=dashboard');
+			//Redirige vers la connexion après une inscription réussie
+			header('Location: ?action=login');
 			exit;
 		} else {
 			$errors = $result['errors'];

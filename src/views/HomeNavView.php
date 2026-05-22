@@ -7,7 +7,6 @@ class HomeNavView {
 		$items = [
 			'dashboard' => ['href' => '?action=dashboard', 'icon' => '⌂', 'label' => 'Accueil'],
 			'flashcards' => ['href' => '?action=flashcards', 'icon' => '□', 'label' => 'Mes fiches'],
-			'partagees' => ['href' => '?action=partagees', 'icon' => '↗', 'label' => 'Partagées avec moi'],
 			'matieres' => ['href' => '?action=matieres', 'icon' => '▣', 'label' => 'Matières'],
 		];
 		?>

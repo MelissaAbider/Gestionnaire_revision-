@@ -18,26 +18,19 @@ class Router {
 			case 'matieres':
 				$this->renderMatieres();
 				break;
-			case 'partagees':
-				$this->renderSharedFlashcards();
-				break;
 			case 'flashcards':
 				$this->renderFlashcards();
 				break;
 			case 'viewFlashcard':
 				$this->renderFlashcardDetail((int)($_GET['id'] ?? 0));
 				break;
-			case 'createFlashcard':
-				$this->renderFlashcardForm();
-				break;
-			case 'storeFlashcard':
-				$this->storeFlashcard();
-				break;
-			case 'editFlashcard':
-				$this->renderFlashcardForm((int)($_GET['id'] ?? 0));
-				break;
-			case 'updateFlashcard':
-				$this->updateFlashcard();
+			case 'flashcardForm':
+				if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+					$this->saveFlashcard();
+				} else {
+					$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+					$this->renderFlashcardForm($id);
+				}
 				break;
 			case 'deleteFlashcard':
 				$this->deleteFlashcard();
@@ -83,7 +76,6 @@ class Router {
 			$base . 'views/PageHeaderView.php',
 			$base . 'views/AccueilView.php',
 			$base . 'views/MatiereView.php',
-			$base . 'views/FlashCardPartage.php',
 			$base . 'views/FlashcardFormView.php',
 			$base . 'views/FlashcardDetailView.php',
 			$base . 'views/FlashcardsListView.php',
@@ -136,24 +128,6 @@ class Router {
 		$view->render();
 	}
 
-	private function renderSharedFlashcards(): void {
-		$user = $this->requireUser();
-		$GLOBALS['currentUser'] = $user;
-
-		try {
-			$shareRepository = new ShareRepository();
-			$GLOBALS['sharedFlashcards'] = $shareRepository->findSharedWithUser((int)$user->id, $_GET);
-			$GLOBALS['sharedMatieres'] = $shareRepository->findSharedMatieresForUser((int)$user->id);
-		} catch (\Throwable $e) {
-			$GLOBALS['sharedFlashcards'] = [];
-			$GLOBALS['sharedMatieres'] = [];
-			$GLOBALS['sharedFlashcardsError'] = 'Les fiches partagees ne peuvent pas encore etre chargees. Verifie que les tables shares et flashcards existent.';
-		}
-
-		$view = new FlashCardPartage();
-		$view->render();
-	}
-
 	private function renderFlashcards(): void {
 		$user = $this->requireUser();
 		$filters = [
@@ -161,9 +135,15 @@ class Router {
 			'matiere' => trim($_GET['matiere'] ?? ''),
 			'sort' => trim($_GET['sort'] ?? 'recent'),
 		];
+		$sharedFilters = [
+			'q' => trim($_GET['shared_q'] ?? ''),
+			'matiere' => trim($_GET['shared_matiere'] ?? ''),
+			'sort' => trim($_GET['shared_sort'] ?? 'recent'),
+		];
 
 		$GLOBALS['currentUser'] = $user;
 		$GLOBALS['flashcardFilters'] = $filters;
+		$GLOBALS['sharedFlashcardFilters'] = $sharedFilters;
 
 		try {
 			$flashcardService = new FlashcardService();
@@ -174,6 +154,16 @@ class Router {
 			$GLOBALS['flashcards'] = [];
 			$GLOBALS['matiereOptions'] = [];
 			$GLOBALS['flashcardLoadError'] = 'Les fiches ne peuvent pas encore etre chargees. Verifie que les tables flashcards, shares et users existent dans la base.';
+		}
+
+		try {
+			$shareRepository = new ShareRepository();
+			$GLOBALS['sharedFlashcards'] = $shareRepository->findSharedWithUser((int)$user->id, $sharedFilters);
+			$GLOBALS['sharedMatiereOptions'] = $shareRepository->findSharedMatieresForUser((int)$user->id);
+		} catch (\Throwable $e) {
+			$GLOBALS['sharedFlashcards'] = [];
+			$GLOBALS['sharedMatiereOptions'] = [];
+			$GLOBALS['sharedFlashcardsError'] = 'Les fiches partagees ne peuvent pas encore etre chargees.';
 		}
 
 		$view = new FlashcardsListView();
@@ -243,54 +233,28 @@ class Router {
 		$view->render();
 	}
 
-	private function storeFlashcard(): void {
+	private function saveFlashcard(): void {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-			header('Location: ?action=createFlashcard');
-			exit;
-		}
-
-		$user = $this->requireUser();
-		$flashcardService = new FlashcardService();
-
-		try {
-			$result = $flashcardService->createFromForm($_POST, (int)$user->id);
-		} catch (\Throwable $e) {
-			$result = [
-				'success' => false,
-				'errors' => ['_form' => 'Impossible de creer la fiche. Verifie que les tables flashcards, question_responses et shares existent.'],
-				'data' => $_POST,
-			];
-		}
-
-		if ($result['success']) {
-			header('Location: ?action=flashcards');
-			exit;
-		}
-
-		$this->renderFlashcardForm(null, $result['data'], $result['errors']);
-	}
-
-	private function updateFlashcard(): void {
-		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-			header('Location: ?action=flashcards');
+			header('Location: ?action=flashcardForm');
 			exit;
 		}
 
 		$user = $this->requireUser();
 		$id = (int)($_POST['id'] ?? 0);
-		if ($id <= 0) {
-			header('Location: ?action=flashcards');
-			exit;
-		}
-
+		$isEdit = $id > 0;
 		$flashcardService = new FlashcardService();
 
 		try {
-			$result = $flashcardService->updateFromForm($id, $_POST, (int)$user->id);
+			$result = $isEdit
+				? $flashcardService->updateFromForm($id, $_POST, (int)$user->id)
+				: $flashcardService->createFromForm($_POST, (int)$user->id);
 		} catch (\Throwable $e) {
 			$result = [
 				'success' => false,
-				'errors' => ['_form' => 'Impossible de modifier la fiche. Verifie que la fiche existe encore.'],
+				'errors' => ['_form' => $isEdit
+					? 'Impossible de modifier la fiche. Verifie que la fiche existe encore.'
+					: 'Impossible de creer la fiche. Verifie que les tables flashcards, question_responses et shares existent.'
+				],
 				'data' => $_POST,
 			];
 		}
@@ -300,7 +264,7 @@ class Router {
 			exit;
 		}
 
-		$this->renderFlashcardForm($id, $result['data'], $result['errors']);
+		$this->renderFlashcardForm($isEdit ? $id : null, $result['data'], $result['errors']);
 	}
 
 	private function deleteFlashcard(): void {

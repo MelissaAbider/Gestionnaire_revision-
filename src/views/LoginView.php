@@ -38,15 +38,17 @@ class LoginView {
 						</div>
 					<?php endif; ?>
 
-					<form class="auth-form" method="POST" action="?action=loginSubmit">
+					<form class="auth-form" method="POST" action="?action=loginSubmit" data-login-form novalidate>
 						<div class="form-group">
 							<label for="email">Email</label>
 							<input type="email" id="email" name="email" placeholder="Entrez votre email" required>
+							<span class="auth-field-error" data-error-for="loginEmail"></span>
 						</div>
 
 						<div class="form-group">
 							<label for="password">Mot de passe</label>
 							<input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+							<span class="auth-field-error" data-error-for="loginPassword"></span>
 						</div>
 
 						<div class="auth-row">
@@ -65,6 +67,7 @@ class LoginView {
 					</div>
 				</section>
 			</main>
+			<script src="/js/script.js" defer></script>
 		</body>
 		</html>
 		<?php

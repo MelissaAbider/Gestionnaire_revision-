@@ -6,9 +6,13 @@ class FlashcardsListView {
 	public function render(): void {
 		$user = $GLOBALS['currentUser'] ?? null;
 		$flashcards = $GLOBALS['flashcards'] ?? [];
+		$sharedFlashcards = $GLOBALS['sharedFlashcards'] ?? [];
 		$filters = $GLOBALS['flashcardFilters'] ?? ['q' => '', 'matiere' => '', 'sort' => 'recent'];
+		$sharedFilters = $GLOBALS['sharedFlashcardFilters'] ?? ['q' => '', 'matiere' => '', 'sort' => 'recent'];
 		$matiereOptions = $GLOBALS['matiereOptions'] ?? [];
+		$sharedMatiereOptions = $GLOBALS['sharedMatiereOptions'] ?? [];
 		$loadError = $GLOBALS['flashcardLoadError'] ?? null;
+		$sharedError = $GLOBALS['sharedFlashcardsError'] ?? null;
 		?>
 		<!DOCTYPE html>
 		<html lang="fr">
@@ -24,127 +28,103 @@ class FlashcardsListView {
 				<?php HomeNavView::render('flashcards'); ?>
 
 				<section class="home-content flashcards-content">
-					<?php PageHeaderView::render($user, 'Mes fiches', 'Retrouvez ici toutes les fiches que vous avez creees.'); ?>
+					<?php PageHeaderView::render($user, 'Mes fiches', 'Retrouvez et gérez toutes vos fiches de révision.'); ?>
 
-					<div class="flashcards-create-row">
-						<a class="create-flashcard-button" href="?action=createFlashcard">
-							<span>+</span>
-							<span>Créer une fiche</span>
-						</a>
-					</div>
-
-					<?php if ($loadError): ?>
+					<?php if ($loadError || $sharedError): ?>
 						<div class="home-alert">
-							<?= $this->e($loadError) ?>
+							<?= $this->e(trim(($loadError ?? '') . ' ' . ($sharedError ?? ''))) ?>
 						</div>
 					<?php endif; ?>
 
-					<form class="flashcards-toolbar" method="GET" action="">
-						<input type="hidden" name="action" value="flashcards">
-						<label class="search-control" for="flashcard-search">
-							<span>⌕</span>
-							<input
-								type="search"
-								id="flashcard-search"
-								name="q"
-								value="<?= $this->e($filters['q'] ?? '') ?>"
-								placeholder="Rechercher une fiche..."
-							>
-						</label>
+					<div class="flashcards-board">
+						<section class="revision-panel">
+							<div class="revision-panel-header">
+								<span class="revision-panel-icon purple">▤</span>
+								<div>
+									<h2>Mes fiches</h2>
+									<p>Fiches que vous avez créées</p>
+								</div>
+								<a class="revision-add-button" href="?action=flashcardForm" aria-label="Créer une fiche">+</a>
+							</div>
 
-						<div class="table-filters">
-							<select name="matiere" aria-label="Filtrer par matière" onchange="this.form.submit()">
-								<option value="">Toutes les matières</option>
-								<?php foreach ($matiereOptions as $matiereName): ?>
-									<option value="<?= $this->e($matiereName) ?>" <?= ($filters['matiere'] ?? '') === $matiereName ? 'selected' : '' ?>>
-										<?= $this->e($matiereName) ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
+							<form class="revision-panel-filters" method="GET" action="">
+								<input type="hidden" name="action" value="flashcards">
+								<input type="hidden" name="shared_q" value="<?= $this->e($sharedFilters['q'] ?? '') ?>">
+								<input type="hidden" name="shared_matiere" value="<?= $this->e($sharedFilters['matiere'] ?? '') ?>">
+								<label class="revision-search" for="flashcard-search">
+									<input
+										type="search"
+										id="flashcard-search"
+										name="q"
+										data-live-search="owned"
+										value="<?= $this->e($filters['q'] ?? '') ?>"
+										placeholder="Rechercher une fiche..."
+									>
+									<span>⌕</span>
+								</label>
+								<select name="matiere" aria-label="Filtrer mes fiches par matière" onchange="this.form.submit()">
+									<option value="">Toutes les matières</option>
+									<?php foreach ($matiereOptions as $matiereName): ?>
+										<option value="<?= $this->e($matiereName) ?>" <?= ($filters['matiere'] ?? '') === $matiereName ? 'selected' : '' ?>>
+											<?= $this->e($matiereName) ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<button class="visually-hidden" type="submit">Rechercher</button>
+							</form>
 
-							<select name="sort" aria-label="Trier les fiches" onchange="this.form.submit()">
-								<option value="recent" <?= ($filters['sort'] ?? 'recent') === 'recent' ? 'selected' : '' ?>>Les plus récentes</option>
-								<option value="oldest" <?= ($filters['sort'] ?? '') === 'oldest' ? 'selected' : '' ?>>Les plus anciennes</option>
-								<option value="title" <?= ($filters['sort'] ?? '') === 'title' ? 'selected' : '' ?>>Titre A-Z</option>
-							</select>
-						</div>
-
-						<button class="visually-hidden" type="submit">Rechercher</button>
-					</form>
-
-					<div class="flashcards-table-card">
-						<table class="flashcards-table">
-							<thead>
-								<tr>
-									<th>Titre</th>
-									<th>Matière</th>
-									<th>Créée le</th>
-									<th>Partagée avec</th>
-									<th>Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php if (empty($flashcards)): ?>
-									<tr>
-										<td colspan="5">
-											<div class="empty-flashcards">
-												<strong>Aucune fiche trouvée</strong>
-												<span>Vos fiches apparaîtront ici dès qu'elles seront créées.</span>
-											</div>
-										</td>
-									</tr>
-								<?php endif; ?>
+							<div class="revision-list" data-live-list="owned">
+								<div class="revision-empty" data-live-empty="owned" <?= empty($flashcards) ? '' : 'hidden' ?>>Aucune fiche trouvée.</div>
 
 								<?php foreach ($flashcards as $flashcard): ?>
-									<?php
-									$matiereColor = $this->colorClass($flashcard['matiere_color'] ?? '', $flashcard['matiere_name'] ?? '');
-									$subtitle = $this->subtitle($flashcard);
-									?>
-									<tr data-flashcard-row data-flashcard-title="<?= $this->e($flashcard['title'] ?? '') ?>">
-										<td>
-											<div class="flashcard-title-cell">
-												<span class="flashcard-row-icon <?= $this->e($matiereColor) ?>">
-													<?= $this->e($this->rowIcon($flashcard['matiere_name'] ?? '')) ?>
-												</span>
-												<div>
-													<strong><?= $this->e($flashcard['title'] ?? 'Sans titre') ?></strong>
-													<?php if ($subtitle !== ''): ?>
-														<p><?= $this->e($subtitle) ?></p>
-													<?php endif; ?>
-												</div>
-											</div>
-										</td>
-										<td>
-											<span class="matiere-pill <?= $this->e($matiereColor) ?>">
-												<?= $this->e($flashcard['matiere_name'] ?? 'Sans matière') ?>
-											</span>
-										</td>
-										<td class="date-cell"><?= $this->e($this->formatDate($flashcard['created_at'] ?? null)) ?></td>
-										<td>
-											<?= $this->renderShares($flashcard['shared_with'] ?? []) ?>
-										</td>
-										<td>
-											<div class="action-buttons">
-												<a href="?action=viewFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="action-button view" aria-label="Voir <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">◉</a>
-												<a href="?action=editFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="action-button edit" aria-label="Modifier <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">✎</a>
-												<form class="inline-delete-form" method="POST" action="?action=deleteFlashcard" onsubmit="return confirm('Supprimer cette fiche de revision ?');">
-													<input type="hidden" name="id" value="<?= (int)($flashcard['id'] ?? 0) ?>">
-													<button type="submit" class="action-button delete" aria-label="Supprimer <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">⌫</button>
-												</form>
-											</div>
-										</td>
-									</tr>
+									<?= $this->renderOwnedCard($flashcard) ?>
 								<?php endforeach; ?>
-								<tr class="search-empty-row" data-search-empty hidden>
-									<td colspan="5">
-										<div class="empty-flashcards">
-											<strong>Aucune fiche trouvée</strong>
-											<span>Aucune fiche ne correspond à cette recherche.</span>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
+							</div>
+						</section>
+
+						<section class="revision-panel">
+							<div class="revision-panel-header">
+								<span class="revision-panel-icon blue">👥</span>
+								<div>
+									<h2>Partagées avec moi</h2>
+									<p>Fiches partagées par d'autres utilisateurs</p>
+								</div>
+							</div>
+
+							<form class="revision-panel-filters" method="GET" action="">
+								<input type="hidden" name="action" value="flashcards">
+								<input type="hidden" name="q" value="<?= $this->e($filters['q'] ?? '') ?>">
+								<input type="hidden" name="matiere" value="<?= $this->e($filters['matiere'] ?? '') ?>">
+								<label class="revision-search" for="shared-flashcard-search">
+									<input
+										type="search"
+										id="shared-flashcard-search"
+										name="shared_q"
+										data-live-search="shared"
+										value="<?= $this->e($sharedFilters['q'] ?? '') ?>"
+										placeholder="Rechercher une fiche..."
+									>
+									<span>⌕</span>
+								</label>
+								<select name="shared_matiere" aria-label="Filtrer les fiches partagées par matière" onchange="this.form.submit()">
+									<option value="">Toutes les matières</option>
+									<?php foreach ($sharedMatiereOptions as $matiereName): ?>
+										<option value="<?= $this->e($matiereName) ?>" <?= ($sharedFilters['matiere'] ?? '') === $matiereName ? 'selected' : '' ?>>
+											<?= $this->e($matiereName) ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<button class="visually-hidden" type="submit">Rechercher</button>
+							</form>
+
+							<div class="revision-list" data-live-list="shared">
+								<div class="revision-empty" data-live-empty="shared" <?= empty($sharedFlashcards) ? '' : 'hidden' ?>>Aucune fiche trouvée.</div>
+
+								<?php foreach ($sharedFlashcards as $flashcard): ?>
+									<?= $this->renderSharedCard($flashcard) ?>
+								<?php endforeach; ?>
+							</div>
+						</section>
 					</div>
 				</section>
 			</main>
@@ -153,43 +133,113 @@ class FlashcardsListView {
 		<?php
 	}
 
-	private function renderShares(array $shares): string {
-		if (empty($shares)) {
-			return '<div class="share-stack"><span class="share-add">+</span></div>';
-		}
+	private function renderOwnedCard(array $flashcard): string {
+		$id = (int)($flashcard['id'] ?? 0);
+		$matiereName = (string)($flashcard['matiere_name'] ?? 'Sans matière');
+		$matiereColor = $this->colorClass((string)($flashcard['matiere_color'] ?? ''), $matiereName);
 
-		$visibleShares = array_slice($shares, 0, 3);
-		$hiddenCount = count($shares) - count($visibleShares);
-		$html = '<div class="share-stack">';
-
-		foreach ($visibleShares as $index => $share) {
-			$name = trim(($share['firstname'] ?? '') . ' ' . ($share['lastname'] ?? ''));
-			$label = $name !== '' ? $name : ($share['email'] ?? 'Utilisateur partagé');
-			$html .= '<span class="share-avatar color-' . (($index % 4) + 1) . '" title="' . $this->e($label) . '">'
-				. $this->e($this->initials($label))
-				. '</span>';
-		}
-
-		if ($hiddenCount > 0) {
-			$html .= '<span class="share-avatar more">+' . $hiddenCount . '</span>';
-		}
-
-		$html .= '</div>';
-
-		return $html;
+		return '
+			<article class="revision-row owned-revision-row" data-live-card="owned" data-live-text="' . $this->e(($flashcard['title'] ?? '') . ' ' . $matiereName) . '">
+				<a class="revision-row-main" href="?action=viewFlashcard&id=' . $id . '">
+					<span class="revision-card-icon ' . $this->e($matiereColor) . '">' . $this->e($this->rowIcon($matiereName)) . '</span>
+					<span class="revision-row-copy">
+						<strong>' . $this->e($flashcard['title'] ?? 'Sans titre') . '</strong>
+						<small><i class="' . $this->e($matiereColor) . '"></i>' . $this->e($matiereName) . '</small>
+					</span>
+				</a>
+				<div class="revision-row-meta">
+					<span class="revision-row-date">' . $this->e($this->ownedDateLabel($flashcard)) . '</span>
+				</div>
+				<div class="revision-row-actions">
+					<a class="revision-view-button" href="?action=viewFlashcard&id=' . $id . '">Voir</a>
+					<a href="?action=flashcardForm&id=' . $id . '" aria-label="Modifier ' . $this->e($flashcard['title'] ?? 'la fiche') . '">✎</a>
+					<form method="POST" action="?action=deleteFlashcard" onsubmit="return confirm(\'Supprimer cette fiche de revision ?\');">
+						<input type="hidden" name="id" value="' . $id . '">
+						<button type="submit" aria-label="Supprimer ' . $this->e($flashcard['title'] ?? 'la fiche') . '">⌫</button>
+					</form>
+				</div>
+			</article>';
 	}
 
-	private function subtitle(array $flashcard): string {
-		$parts = array_filter([
-			trim((string)($flashcard['subject'] ?? '')),
-		]);
+	private function ownedDateLabel(array $flashcard): string {
+		$createdAt = $flashcard['created_at'] ?? null;
+		$updatedAt = $flashcard['updated_at'] ?? null;
 
-		$text = implode(' - ', array_unique($parts));
-		if (mb_strlen($text) > 58) {
-			return mb_substr($text, 0, 55) . '...';
+		if ($this->hasModificationDate($createdAt, $updatedAt)) {
+			return 'Modifiée ' . $this->relativeDate((string)$updatedAt);
 		}
 
-		return $text;
+		return 'Créée ' . $this->relativeDate(is_string($createdAt) ? $createdAt : null);
+	}
+
+	private function hasModificationDate(mixed $createdAt, mixed $updatedAt): bool {
+		if (!is_string($updatedAt) || trim($updatedAt) === '') {
+			return false;
+		}
+
+		if (!is_string($createdAt) || trim($createdAt) === '') {
+			return true;
+		}
+
+		$createdTimestamp = strtotime($createdAt);
+		$updatedTimestamp = strtotime($updatedAt);
+
+		if ($createdTimestamp === false || $updatedTimestamp === false) {
+			return $updatedAt !== $createdAt;
+		}
+
+		return $updatedTimestamp > $createdTimestamp;
+	}
+
+	private function renderSharedCard(array $flashcard): string {
+		$id = (int)($flashcard['flashcard_id'] ?? $flashcard['id'] ?? 0);
+		$ownerName = trim((string)($flashcard['owner_firstname'] ?? '') . ' ' . (string)($flashcard['owner_lastname'] ?? ''));
+		$ownerLabel = $ownerName !== '' ? $ownerName : (string)($flashcard['owner_email'] ?? 'Utilisateur');
+		$matiereName = (string)($flashcard['matiere_name'] ?? 'Sans matière');
+		$matiereColor = $this->colorClass((string)($flashcard['matiere_color'] ?? ''), $matiereName);
+
+		return '
+			<article class="revision-row shared-revision-row" data-live-card="shared" data-live-text="' . $this->e(($flashcard['title'] ?? '') . ' ' . $ownerLabel . ' ' . $matiereName) . '">
+				<a class="revision-row-main" href="?action=viewFlashcard&id=' . $id . '">
+					<span class="revision-owner-avatar ' . $this->e($matiereColor) . '">' . $this->e($this->initials($ownerLabel)) . '</span>
+					<span class="revision-row-copy">
+						<strong>' . $this->e($flashcard['title'] ?? 'Sans titre') . '</strong>
+						<small>' . $this->e($ownerLabel) . '</small>
+						<small><i class="' . $this->e($matiereColor) . '"></i>' . $this->e($matiereName) . '</small>
+					</span>
+				</a>
+				<span class="revision-row-date">Partagée le ' . $this->e($this->formatDate($flashcard['shared_at'] ?? null)) . '</span>
+				<a class="revision-view-button" href="?action=viewFlashcard&id=' . $id . '">Voir</a>
+			</article>';
+	}
+
+	private function relativeDate(?string $date): string {
+		if (!$date) {
+			return 'récemment';
+		}
+
+		try {
+			$value = new DateTime($date);
+			$now = new DateTime();
+		} catch (\Throwable $e) {
+			return 'récemment';
+		}
+
+		$days = max(0, (int)$value->diff($now)->format('%a'));
+		if ($days === 0) {
+			return 'aujourd\'hui';
+		}
+
+		if ($days === 1) {
+			return 'il y a 1 j';
+		}
+
+		if ($days < 7) {
+			return 'il y a ' . $days . ' j';
+		}
+
+		$weeks = (int)floor($days / 7);
+		return 'il y a ' . $weeks . ' sem.';
 	}
 
 	private function formatDate(?string $date): string {
@@ -203,22 +253,7 @@ class FlashcardsListView {
 			return '-';
 		}
 
-		$months = [
-			1 => 'janv.',
-			2 => 'févr.',
-			3 => 'mars',
-			4 => 'avr.',
-			5 => 'mai',
-			6 => 'juin',
-			7 => 'juil.',
-			8 => 'août',
-			9 => 'sept.',
-			10 => 'oct.',
-			11 => 'nov.',
-			12 => 'déc.',
-		];
-
-		return (int)$value->format('j') . ' ' . $months[(int)$value->format('n')] . ' ' . $value->format('Y');
+		return $value->format('d/m/Y');
 	}
 
 	private function colorClass(string $color, string $name): string {
@@ -235,8 +270,14 @@ class FlashcardsListView {
 	}
 
 	private function rowIcon(string $matiereName): string {
-		$firstLetter = mb_substr(trim($matiereName), 0, 1);
+		$lower = mb_strtolower($matiereName);
+		if (str_contains($lower, 'math')) return '√x';
+		if (str_contains($lower, 'réseau') || str_contains($lower, 'reseau')) return '◎';
+		if (str_contains($lower, 'programm')) return '</>';
+		if (str_contains($lower, 'base') || str_contains($lower, 'sql')) return '▤';
+		if (str_contains($lower, 'système') || str_contains($lower, 'systeme')) return '⚙';
 
+		$firstLetter = mb_substr(trim($matiereName), 0, 1);
 		return $firstLetter !== '' ? mb_strtoupper($firstLetter) : 'F';
 	}
 

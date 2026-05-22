@@ -31,7 +31,7 @@ class FlashcardDetailView {
 					if ($isOwner):
 					?>
 						<div class="detail-owner-actions">
-							<a href="?action=editFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="secondary-button">Modifier</a>
+							<a href="?action=flashcardForm&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="secondary-button">Modifier</a>
 							<form method="POST" action="?action=deleteFlashcard" onsubmit="return confirm('Supprimer cette fiche de revision ?');">
 								<input type="hidden" name="id" value="<?= (int)($flashcard['id'] ?? 0) ?>">
 								<button class="danger-button" type="submit">Supprimer</button>
@@ -68,7 +68,7 @@ class FlashcardDetailView {
 								</div>
 								<div>
 									<span>Modifiée le</span>
-									<strong><?= $this->e($this->formatDate($flashcard['updated_at'] ?? null)) ?></strong>
+									<strong><?= $this->e($this->formatModificationDate($flashcard['created_at'] ?? null, $flashcard['updated_at'] ?? null)) ?></strong>
 								</div>
 							</div>
 
@@ -139,6 +139,33 @@ class FlashcardDetailView {
 		}
 
 		return $value->format('d/m/Y');
+	}
+
+	private function formatModificationDate(?string $createdAt, ?string $updatedAt): string {
+		if (!$updatedAt || !$this->hasModificationDate($createdAt, $updatedAt)) {
+			return '-';
+		}
+
+		return $this->formatDate($updatedAt);
+	}
+
+	private function hasModificationDate(?string $createdAt, ?string $updatedAt): bool {
+		if (!$updatedAt) {
+			return false;
+		}
+
+		if (!$createdAt) {
+			return true;
+		}
+
+		$createdTimestamp = strtotime($createdAt);
+		$updatedTimestamp = strtotime($updatedAt);
+
+		if ($createdTimestamp === false || $updatedTimestamp === false) {
+			return $updatedAt !== $createdAt;
+		}
+
+		return $updatedTimestamp > $createdTimestamp;
 	}
 
 	private function colorClass(string $color, string $name): string {

@@ -2,38 +2,239 @@
  * Script JavaScript principal
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.querySelector('#flashcard-search');
-    const rows = Array.from(document.querySelectorAll('[data-flashcard-row]'));
-    const emptyRow = document.querySelector('[data-search-empty]');
-
     const normalize = (value) => value
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .trim();
 
-    if (searchInput && rows.length > 0) {
-        const filterRows = () => {
+    document.querySelectorAll('[data-live-search]').forEach((searchInput) => {
+        const listName = searchInput.dataset.liveSearch || '';
+        const cards = Array.from(document.querySelectorAll(`[data-live-card="${listName}"]`));
+        const emptyState = document.querySelector(`[data-live-empty="${listName}"]`);
+
+        if (cards.length === 0 && !emptyState) {
+            return;
+        }
+
+        const filterCards = () => {
             const query = normalize(searchInput.value);
-            let visibleRows = 0;
+            let visibleCards = 0;
 
-            rows.forEach((row) => {
-                const title = normalize(row.dataset.flashcardTitle || '');
-                const isVisible = query === '' || title.includes(query);
+            cards.forEach((card) => {
+                const text = normalize(card.dataset.liveText || '');
+                const isVisible = query === '' || text.includes(query);
 
-                row.hidden = !isVisible;
+                card.hidden = !isVisible;
                 if (isVisible) {
-                    visibleRows += 1;
+                    visibleCards += 1;
                 }
             });
 
-            if (emptyRow) {
-                emptyRow.hidden = visibleRows > 0 || query === '';
+            if (emptyState) {
+                emptyState.hidden = visibleCards > 0;
             }
         };
 
-        searchInput.addEventListener('input', filterRows);
-        filterRows();
+        searchInput.addEventListener('input', filterCards);
+        filterCards();
+    });
+
+    const registerForm = document.querySelector('[data-register-form]');
+
+    if (registerForm) {
+        const fields = {
+            firstName: registerForm.querySelector('[name="firstName"]'),
+            lastName: registerForm.querySelector('[name="lastName"]'),
+            email: registerForm.querySelector('[name="email"]'),
+            birthDate: registerForm.querySelector('[name="birthDate"]'),
+            password: registerForm.querySelector('[name="password"]'),
+            confirmPassword: registerForm.querySelector('[name="confirmPassword"]'),
+        };
+
+        const setFieldError = (name, message) => {
+            const field = fields[name];
+            const group = field?.closest('.form-group');
+            const error = registerForm.querySelector(`[data-error-for="${name}"]`);
+
+            group?.classList.toggle('has-error', message !== '');
+            if (error) {
+                error.textContent = message;
+            }
+        };
+
+        const isValidBirthDate = (value) => {
+            if (!/^\d{8}$/.test(value)) {
+                return false;
+            }
+
+            const year = Number(value.slice(0, 4));
+            const month = Number(value.slice(4, 6));
+            const day = Number(value.slice(6, 8));
+            const date = new Date(year, month - 1, day);
+
+            return date.getFullYear() === year
+                && date.getMonth() === month - 1
+                && date.getDate() === day;
+        };
+
+        registerForm.addEventListener('submit', (event) => {
+            const values = Object.fromEntries(
+                Object.entries(fields).map(([name, field]) => [name, field?.value.trim() || ''])
+            );
+            const errors = {};
+
+            if (values.firstName === '') errors.firstName = 'Le prénom est requis.';
+            if (values.lastName === '') errors.lastName = 'Le nom est requis.';
+            if (values.email === '') {
+                errors.email = 'Le mail est requis.';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+                errors.email = 'Le mail doit respecter le format login@domaine.extension.';
+            }
+            if (values.birthDate === '') {
+                errors.birthDate = 'La date de naissance est requise.';
+            } else if (!isValidBirthDate(values.birthDate)) {
+                errors.birthDate = 'La date de naissance doit respecter le format AAAAMMJJ.';
+            }
+            if (values.password === '') {
+                errors.password = 'Le mot de passe est requis.';
+            } else if (values.password.length < 6) {
+                errors.password = 'Le mot de passe doit contenir au moins 6 caractères.';
+            }
+            if (values.confirmPassword === '') {
+                errors.confirmPassword = 'La confirmation du mot de passe est requise.';
+            } else if (values.password !== values.confirmPassword) {
+                errors.confirmPassword = 'Les mots de passe ne correspondent pas.';
+            }
+
+            Object.keys(fields).forEach((name) => {
+                setFieldError(name, errors[name] || '');
+            });
+
+            if (Object.keys(errors).length > 0) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const loginForm = document.querySelector('[data-login-form]');
+
+    if (loginForm) {
+        const email = loginForm.querySelector('[name="email"]');
+        const password = loginForm.querySelector('[name="password"]');
+
+        const setAuthError = (field, errorName, message) => {
+            const group = field?.closest('.form-group');
+            const error = loginForm.querySelector(`[data-error-for="${errorName}"]`);
+
+            group?.classList.toggle('has-error', message !== '');
+            if (error) {
+                error.textContent = message;
+            }
+        };
+
+        loginForm.addEventListener('submit', (event) => {
+            const emailValue = email?.value.trim() || '';
+            const passwordValue = password?.value || '';
+            let hasErrors = false;
+
+            if (emailValue === '') {
+                setAuthError(email, 'loginEmail', 'Le mail est requis.');
+                hasErrors = true;
+            } else if (!emailPattern.test(emailValue)) {
+                setAuthError(email, 'loginEmail', 'Le mail doit respecter le format login@domaine.extension.');
+                hasErrors = true;
+            } else {
+                setAuthError(email, 'loginEmail', '');
+            }
+
+            if (passwordValue === '') {
+                setAuthError(password, 'loginPassword', 'Le mot de passe est requis.');
+                hasErrors = true;
+            } else {
+                setAuthError(password, 'loginPassword', '');
+            }
+
+            if (hasErrors) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-matiere-form]').forEach((form) => {
+        const nameInput = form.querySelector('[name="name"]');
+        const error = form.querySelector('[data-matiere-error]');
+
+        form.addEventListener('submit', (event) => {
+            const message = (nameInput?.value.trim() || '') === ''
+                ? 'Le nom de la matière est requis.'
+                : '';
+
+            form.classList.toggle('has-error', message !== '');
+            if (error) {
+                error.textContent = message;
+            }
+
+            if (message !== '') {
+                event.preventDefault();
+            }
+        });
+    });
+
+    const flashcardForm = document.querySelector('[data-flashcard-form]');
+
+    if (flashcardForm) {
+        const setFormFieldError = (field, message) => {
+            const wrapper = field?.closest('.form-field');
+            const fallbackError = field?.parentElement?.querySelector('[data-error-for]');
+
+            wrapper?.classList.toggle('has-error', message !== '');
+            if (fallbackError) {
+                fallbackError.textContent = message;
+            }
+        };
+
+        flashcardForm.addEventListener('submit', (event) => {
+            const title = flashcardForm.querySelector('[name="title"]');
+            const questionItems = Array.from(flashcardForm.querySelectorAll('[data-qa-item]'));
+            const questionResponseError = flashcardForm.querySelector('[data-error-for="questionResponses"]');
+            let hasErrors = false;
+
+            if ((title?.value.trim() || '') === '') {
+                setFormFieldError(title, 'Le titre est requis.');
+                hasErrors = true;
+            } else {
+                setFormFieldError(title, '');
+            }
+
+            const invalidQuestionResponses = questionItems.some((item) => {
+                const question = item.querySelector('[name="questions[]"]');
+                const response = item.querySelector('[name="responses[]"]');
+                const questionEmpty = (question?.value.trim() || '') === '';
+                const responseEmpty = (response?.value.trim() || '') === '';
+
+                item.classList.toggle('has-error', questionEmpty || responseEmpty);
+                question?.classList.toggle('is-invalid', questionEmpty);
+                response?.classList.toggle('is-invalid', responseEmpty);
+
+                return questionEmpty || responseEmpty;
+            });
+
+            if (invalidQuestionResponses) {
+                if (questionResponseError) {
+                    questionResponseError.textContent = 'Chaque carte doit avoir une question et une réponse.';
+                }
+                hasErrors = true;
+            } else if (questionResponseError) {
+                questionResponseError.textContent = '';
+            }
+
+            if (hasErrors) {
+                event.preventDefault();
+            }
+        });
     }
 
     const titleInput = document.querySelector('#flashcard-title');
