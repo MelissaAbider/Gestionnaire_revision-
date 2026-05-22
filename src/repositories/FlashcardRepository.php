@@ -5,28 +5,40 @@
 
 class FlashcardRepository {
     private \PDO $pdo;
+    private QuestionResponseRepository $questionResponseRepo;
 
     public function __construct() {
         $this->pdo = DatabaseConnection::getInstance()->getPdo();
+        $this->questionResponseRepo = new QuestionResponseRepository();
     }
 
     public function create(Flashcard $flashcard): int {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO flashcards (owner_id, matiere_id, title, subject, theme, created_at, updated_at)
-            VALUES (:owner_id, :matiere_id, :title, :subject, :theme, :created_at, :updated_at)
-            RETURNING id'
-        );
-        $stmt->execute([
-            'owner_id' => $flashcard->proprietaire,
-            'matiere_id' => $flashcard->matiereId,
-            'title' => $flashcard->title,
-            'subject' => $flashcard->subject,
-            'theme' => $flashcard->theme,
-            'created_at' => $flashcard->createdAt->format('Y-m-d H:i:s'),
-            'updated_at' => $flashcard->updatedAt->format('Y-m-d H:i:s'),
-        ]);
+        $this->pdo->beginTransaction();
 
-        return (int)$stmt->fetchColumn();
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
+                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
+                RETURNING id'
+            );
+            $stmt->execute([
+                'owner_id' => $flashcard->proprietaire,
+                'matiere_id' => $flashcard->matiereId,
+                'title' => $flashcard->title,
+                'subject' => $flashcard->subject,
+                'created_at' => $flashcard->createdAt->format('Y-m-d H:i:s'),
+                'updated_at' => $flashcard->updatedAt->format('Y-m-d H:i:s'),
+            ]);
+
+            $id = (int)$stmt->fetchColumn();
+            $this->questionResponseRepo->replaceForFlashcard($id, $flashcard->questionResponses);
+            $this->pdo->commit();
+
+            return $id;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -35,21 +47,20 @@ class FlashcardRepository {
     public function createFromForm(
         int $ownerId,
         string $title,
-        string $content,
+        array $questionResponses,
         ?int $matiereId,
         string $matiereName,
         array $sharedUserIds
     ): int {
         $now = date('Y-m-d H:i:s');
-        $themePreview = mb_substr($content, 0, 255);
 
         $this->pdo->beginTransaction();
 
         try {
             if ($this->columnExists('flashcards', 'matiere_id')) {
                 $stmt = $this->pdo->prepare(
-                    'INSERT INTO flashcards (owner_id, matiere_id, title, subject, theme, created_at, updated_at)
-                    VALUES (:owner_id, :matiere_id, :title, :subject, :theme, :created_at, :updated_at)
+                    'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
+                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -57,28 +68,26 @@ class FlashcardRepository {
                     'matiere_id' => $matiereId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
             } else {
                 $stmt = $this->pdo->prepare(
-                    'INSERT INTO flashcards (owner_id, title, subject, theme, created_at, updated_at)
-                    VALUES (:owner_id, :title, :subject, :theme, :created_at, :updated_at)
+                    'INSERT INTO flashcards (owner_id, title, subject, created_at, updated_at)
+                    VALUES (:owner_id, :title, :subject, :created_at, :updated_at)
                     RETURNING id'
                 );
                 $stmt->execute([
                     'owner_id' => $ownerId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
             }
 
             $flashcardId = (int)$stmt->fetchColumn();
-            $this->saveContent($flashcardId, $content);
+            $this->questionResponseRepo->replaceForFlashcard($flashcardId, $questionResponses);
             $this->syncShares($flashcardId, $ownerId, $sharedUserIds);
             $this->pdo->commit();
 
@@ -96,13 +105,12 @@ class FlashcardRepository {
         int $id,
         int $ownerId,
         string $title,
-        string $content,
+        array $questionResponses,
         ?int $matiereId,
         string $matiereName,
         array $sharedUserIds
     ): void {
         $now = date('Y-m-d H:i:s');
-        $themePreview = mb_substr($content, 0, 255);
 
         if (!$this->findByIdForUser($id, $ownerId)) {
             throw new \RuntimeException('Fiche introuvable.');
@@ -117,7 +125,6 @@ class FlashcardRepository {
                     SET title = :title,
                         matiere_id = :matiere_id,
                         subject = :subject,
-                        theme = :theme,
                         updated_at = :updated_at
                     WHERE id = :id AND owner_id = :owner_id'
                 );
@@ -127,7 +134,6 @@ class FlashcardRepository {
                     'title' => $title,
                     'matiere_id' => $matiereId,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'updated_at' => $now,
                 ]);
             } else {
@@ -135,7 +141,6 @@ class FlashcardRepository {
                     'UPDATE flashcards
                     SET title = :title,
                         subject = :subject,
-                        theme = :theme,
                         updated_at = :updated_at
                     WHERE id = :id AND owner_id = :owner_id'
                 );
@@ -144,12 +149,11 @@ class FlashcardRepository {
                     'owner_id' => $ownerId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'updated_at' => $now,
                 ]);
             }
 
-            $this->saveContent($id, $content);
+            $this->questionResponseRepo->replaceForFlashcard($id, $questionResponses);
             $this->syncShares($id, $ownerId, $sharedUserIds);
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -191,10 +195,40 @@ class FlashcardRepository {
         return [
             'id' => (int)$row['id'],
             'title' => $row['title'] ?? '',
-            'content' => $this->findContentForFlashcard((int)$row['id']) ?: ($row['theme'] ?? ''),
+            'questionResponses' => $this->findQuestionResponseFormData((int)$row['id']),
             'matiereId' => isset($row['matiere_id']) ? (string)$row['matiere_id'] : '',
             'sharedUserIds' => $this->findSharedUserIds((int)$row['id']),
         ];
+    }
+
+    public function deleteForUser(int $id, int $ownerId): bool {
+        if (!$this->findByIdForUser($id, $ownerId)) {
+            return false;
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare('DELETE FROM shares WHERE flashcard_id = :flashcard_id');
+            $stmt->execute(['flashcard_id' => $id]);
+
+            $stmt = $this->pdo->prepare('DELETE FROM question_responses WHERE flashcard_id = :flashcard_id');
+            $stmt->execute(['flashcard_id' => $id]);
+
+            $stmt = $this->pdo->prepare('DELETE FROM flashcards WHERE id = :id AND owner_id = :owner_id');
+            $stmt->execute([
+                'id' => $id,
+                'owner_id' => $ownerId,
+            ]);
+
+            $deleted = $stmt->rowCount() > 0;
+            $this->pdo->commit();
+
+            return $deleted;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -218,6 +252,150 @@ class FlashcardRepository {
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function findViewForUser(int $id, int $userId): ?array {
+        $hasMatiereRelation = $this->tableExists('matieres')
+            && $this->columnExists('flashcards', 'matiere_id');
+
+        if ($hasMatiereRelation) {
+            $stmt = $this->pdo->prepare(
+                'SELECT
+                    f.id,
+                    f.owner_id,
+                    f.title,
+                    f.subject,
+                    f.created_at,
+                    f.updated_at,
+                    COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
+                    COALESCE(m.color, \'blue\') AS matiere_color,
+                    u.firstname AS owner_firstname,
+                    u.lastname AS owner_lastname,
+                    u.email AS owner_email
+                FROM flashcards f
+                LEFT JOIN matieres m ON m.id = f.matiere_id AND m.owner_id = f.owner_id
+                LEFT JOIN users u ON u.id = f.owner_id
+                WHERE f.id = :id
+                AND (
+                    f.owner_id = :owner_user_id
+                    OR EXISTS (
+                        SELECT 1 FROM shares s
+                        WHERE s.flashcard_id = f.id AND s.user_id = :shared_user_id
+                    )
+                )
+                LIMIT 1'
+            );
+        } else {
+            $stmt = $this->pdo->prepare(
+                'SELECT
+                    f.id,
+                    f.owner_id,
+                    f.title,
+                    f.subject,
+                    f.created_at,
+                    f.updated_at,
+                    COALESCE(NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
+                    \'blue\' AS matiere_color,
+                    u.firstname AS owner_firstname,
+                    u.lastname AS owner_lastname,
+                    u.email AS owner_email
+                FROM flashcards f
+                LEFT JOIN users u ON u.id = f.owner_id
+                WHERE f.id = :id
+                AND (
+                    f.owner_id = :owner_user_id
+                    OR EXISTS (
+                        SELECT 1 FROM shares s
+                        WHERE s.flashcard_id = f.id AND s.user_id = :shared_user_id
+                    )
+                )
+                LIMIT 1'
+            );
+        }
+
+        $stmt->execute([
+            'id' => $id,
+            'owner_user_id' => $userId,
+            'shared_user_id' => $userId,
+        ]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return null;
+        }
+
+        $ownerName = trim((string)($row['owner_firstname'] ?? '') . ' ' . (string)($row['owner_lastname'] ?? ''));
+        $shares = $this->findSharesByFlashcardIds([(int)$row['id']]);
+        $questionResponses = array_map(
+            fn(QuestionResponse $questionResponse): array => [
+                'question' => $questionResponse->question,
+                'response' => $questionResponse->response,
+            ],
+            $this->questionResponseRepo->findByFlashcardId((int)$row['id'])
+        );
+
+        return [
+            'id' => (int)$row['id'],
+            'owner_id' => (int)$row['owner_id'],
+            'is_owner' => (int)$row['owner_id'] === $userId,
+            'title' => $row['title'] ?? '',
+            'subject' => $row['subject'] ?? '',
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
+            'matiere_name' => $row['matiere_name'] ?? 'Sans matière',
+            'matiere_color' => $row['matiere_color'] ?? 'blue',
+            'owner_name' => $ownerName !== '' ? $ownerName : ($row['owner_email'] ?? 'Utilisateur'),
+            'owner_email' => $row['owner_email'] ?? '',
+            'shared_with' => $shares[(int)$row['id']] ?? [],
+            'question_responses' => $questionResponses,
+        ];
+    }
+
+    public function findRecentActivityForUser(int $ownerId, int $limit = 5): array {
+        $hasMatiereRelation = $this->tableExists('matieres')
+            && $this->columnExists('flashcards', 'matiere_id');
+
+        if ($hasMatiereRelation) {
+            $stmt = $this->pdo->prepare(
+                'SELECT
+                    f.id,
+                    f.title,
+                    f.subject,
+                    f.created_at,
+                    f.updated_at,
+                    COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matiere\') AS matiere_name,
+                    COALESCE(m.color, \'blue\') AS matiere_color
+                FROM flashcards f
+                LEFT JOIN matieres m ON m.id = f.matiere_id AND m.owner_id = f.owner_id
+                WHERE f.owner_id = :owner_id
+                ORDER BY f.updated_at DESC, f.created_at DESC
+                LIMIT :limit'
+            );
+        } else {
+            $stmt = $this->pdo->prepare(
+                'SELECT
+                    f.id,
+                    f.title,
+                    f.subject,
+                    f.created_at,
+                    f.updated_at,
+                    COALESCE(NULLIF(f.subject, \'\'), \'Sans matiere\') AS matiere_name,
+                    \'blue\' AS matiere_color
+                FROM flashcards f
+                WHERE f.owner_id = :owner_id
+                ORDER BY f.updated_at DESC, f.created_at DESC
+                LIMIT :limit'
+            );
+        }
+
+        $stmt->bindValue(':owner_id', $ownerId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function findListForUser(int $ownerId): array {
@@ -226,8 +404,8 @@ class FlashcardRepository {
 
         if ($hasMatiereRelation) {
             $stmt = $this->pdo->prepare(
-                'SELECT f.id, f.title, f.subject, f.theme, f.created_at, f.updated_at,
-                    COALESCE(m.name, NULLIF(f.subject, \'\'), NULLIF(f.theme, \'\'), \'Sans matière\') AS matiere_name,
+                'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     COALESCE(m.color, \'blue\') AS matiere_color
                 FROM flashcards f
                 LEFT JOIN matieres m ON m.id = f.matiere_id AND m.owner_id = f.owner_id
@@ -236,8 +414,8 @@ class FlashcardRepository {
             );
         } else {
             $stmt = $this->pdo->prepare(
-                'SELECT f.id, f.title, f.subject, f.theme, f.created_at, f.updated_at,
-                    COALESCE(NULLIF(f.subject, \'\'), NULLIF(f.theme, \'\'), \'Sans matière\') AS matiere_name,
+                'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COALESCE(NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     \'blue\' AS matiere_color
                 FROM flashcards f
                 WHERE f.owner_id = :owner_id
@@ -257,7 +435,6 @@ class FlashcardRepository {
                     'id' => $id,
                     'title' => $row['title'] ?? '',
                     'subject' => $row['subject'] ?? '',
-                    'theme' => $row['theme'] ?? '',
                     'created_at' => $row['created_at'] ?? null,
                     'updated_at' => $row['updated_at'] ?? null,
                     'matiere_name' => $row['matiere_name'] ?? 'Sans matière',
@@ -309,54 +486,23 @@ class FlashcardRepository {
         return $shares;
     }
 
-    private function saveContent(int $flashcardId, string $content): void {
-        $stmt = $this->pdo->prepare(
-            'SELECT id
-            FROM question_responses
-            WHERE flashcard_id = :flashcard_id
-            ORDER BY id ASC
-            LIMIT 1'
-        );
-        $stmt->execute(['flashcard_id' => $flashcardId]);
-        $questionResponseId = $stmt->fetchColumn();
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function findQuestionResponseFormData(int $flashcardId): array {
+        $questionResponses = $this->questionResponseRepo->findByFlashcardId($flashcardId);
 
-        if ($questionResponseId) {
-            $stmt = $this->pdo->prepare(
-                'UPDATE question_responses
-                SET question = :question, response = :response
-                WHERE id = :id'
-            );
-            $stmt->execute([
-                'id' => (int)$questionResponseId,
-                'question' => 'Contenu',
-                'response' => $content,
-            ]);
-
-            return;
+        if (empty($questionResponses)) {
+            return [['question' => '', 'response' => '']];
         }
 
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO question_responses (flashcard_id, question, response)
-            VALUES (:flashcard_id, :question, :response)'
+        return array_map(
+            fn(QuestionResponse $questionResponse): array => [
+                'question' => $questionResponse->question,
+                'response' => $questionResponse->response,
+            ],
+            $questionResponses
         );
-        $stmt->execute([
-            'flashcard_id' => $flashcardId,
-            'question' => 'Contenu',
-            'response' => $content,
-        ]);
-    }
-
-    private function findContentForFlashcard(int $flashcardId): string {
-        $stmt = $this->pdo->prepare(
-            'SELECT response
-            FROM question_responses
-            WHERE flashcard_id = :flashcard_id
-            ORDER BY id ASC
-            LIMIT 1'
-        );
-        $stmt->execute(['flashcard_id' => $flashcardId]);
-
-        return (string)($stmt->fetchColumn() ?: '');
     }
 
     /**

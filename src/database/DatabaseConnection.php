@@ -9,12 +9,13 @@ class DatabaseConnection {
 	private function __construct() {
         $config = [];
         $configFile = __DIR__ . '/../config.php';
+        //Vérifie que le fichier existe avant de le charger
         if (file_exists($configFile)) {
             $config = require $configFile;
         }
 
-        // Configure via config.php first, then env vars, otherwise use sqlite file
-        $dsn = $config['dsn'] ?? getenv('DB_DSN') ?: 'sqlite:' . __DIR__ . '/database.sqlite';
+        // Configure la connexion vers la base de données POSTGRESQL 
+        $dsn = $config['dsn'] ?? getenv('DB_DSN');
         $user = $config['user'] ?? getenv('DB_USER') ?: null;
         $pass = $config['pass'] ?? getenv('DB_PASS') ?: null;
         
@@ -24,13 +25,7 @@ class DatabaseConnection {
 			\PDO::ATTR_EMULATE_PREPARES => false,
 		];
 
-		// If using MySQL, ensure proper charset on connection
-		if (stripos($dsn, 'mysql:') === 0) {
-			if (defined('PDO::MYSQL_ATTR_INIT_COMMAND')) {
-				$options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES 'utf8mb4'";
-			}
-		}
-
+        //Si l'utilisateur n'est pas défini,
 		if ($user !== null) {
 			$this->pdo = new \PDO($dsn, $user, $pass, $options);
 		} else {
@@ -38,6 +33,7 @@ class DatabaseConnection {
 		}
 	}
 
+    //Récupère l'instance de la connexion à la base de données (singleton)
 	public static function getInstance(): DatabaseConnection {
 		if (self::$instance === null) {
 			self::$instance = new DatabaseConnection();
@@ -46,6 +42,7 @@ class DatabaseConnection {
 		return self::$instance;
 	}
 
+    // Récupère l'objet PDO pour exécuter des requêtes SQL
 	public function getPdo(): \PDO {
 		return $this->pdo;
 	}

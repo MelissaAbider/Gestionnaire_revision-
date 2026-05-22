@@ -18,20 +18,14 @@ CREATE TABLE IF NOT EXISTS matieres (
 ALTER TABLE flashcards
 ADD COLUMN IF NOT EXISTS matiere_id INTEGER;
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'fk_flashcards_matiere'
-    ) THEN
-        ALTER TABLE flashcards
-        ADD CONSTRAINT fk_flashcards_matiere
-        FOREIGN KEY (matiere_id)
-        REFERENCES matieres(id)
-        ON DELETE SET NULL;
-    END IF;
-END $$;
+ALTER TABLE flashcards
+DROP CONSTRAINT IF EXISTS fk_flashcards_matiere;
+
+ALTER TABLE flashcards
+ADD CONSTRAINT fk_flashcards_matiere
+FOREIGN KEY (matiere_id)
+REFERENCES matieres(id)
+ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_matieres_owner_id
 ON matieres(owner_id);

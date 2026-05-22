@@ -14,21 +14,31 @@ class LoginView {
 			<title>Connexion - Gestionnaire de Révision</title>
 			<link rel="stylesheet" href="/css/style.css">
 		</head>
-		<body>
-			<div class="register-container">
-				<div class="register-box">
-					<div class="register-header">
-						<h1>Connexion</h1>
-						<p>Connectez-vous à votre compte</p>
+		<body class="auth-body">
+			<main class="auth-card">
+				<section class="auth-brand-panel">
+					<div class="auth-brand-content">
+						<div class="auth-logo">
+							<span class="auth-logo-icon">F</span>
+							<span>FlashMind</span>
+						</div>
+						<p>Apprenez aujourd'hui,<br>reussissez demain.</p>
+					</div>
+				</section>
+
+				<section class="auth-form-panel">
+					<div class="auth-header">
+						<h1>Bienvenue !</h1>
+						<p>Connexion a votre compte</p>
 					</div>
 
 					<?php if ($error): ?>
-						<div style="color: var(--error); margin-bottom: 12px; text-align:center;">
+						<div class="auth-error">
 							<?= htmlspecialchars($error) ?>
 						</div>
 					<?php endif; ?>
 
-					<form class="register-form" method="POST" action="?action=loginSubmit">
+					<form class="auth-form" method="POST" action="?action=loginSubmit">
 						<div class="form-group">
 							<label for="email">Email</label>
 							<input type="email" id="email" name="email" placeholder="Entrez votre email" required>
@@ -39,14 +49,22 @@ class LoginView {
 							<input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required>
 						</div>
 
+						<div class="auth-row">
+							<label class="remember-choice">
+								<input type="checkbox" name="remember">
+								<span>Se souvenir de moi</span>
+							</label>
+							<a href="#">Mot de passe oublie ?</a>
+						</div>
+
 						<button type="submit" class="btn-submit">Se connecter</button>
 					</form>
 
 					<div class="login-link">
-						<p>Pas encore de compte ? <a href="?action=register">Inscrivez-vous</a></p>
+						<p>Pas encore de compte ? <a href="?action=register">S'inscrire</a></p>
 					</div>
-				</div>
-			</div>
+				</section>
+			</main>
 		</body>
 		</html>
 		<?php

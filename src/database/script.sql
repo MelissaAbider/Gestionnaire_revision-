@@ -1,5 +1,6 @@
 -- Suppression des tables si elles existent déjà
 DROP TABLE IF EXISTS shares CASCADE;
+DROP TABLE IF EXISTS revision_events CASCADE;
 DROP TABLE IF EXISTS question_responses CASCADE;
 DROP TABLE IF EXISTS flashcards CASCADE;
 DROP TABLE IF EXISTS matieres CASCADE;
@@ -46,7 +47,6 @@ CREATE TABLE flashcards (
     matiere_id INTEGER,
     title VARCHAR(255) NOT NULL,
     subject VARCHAR(255),
-    theme VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -100,6 +100,26 @@ CREATE TABLE shares (
 );
 
 -- =========================
+-- TABLE REVISION_EVENTS
+-- =========================
+CREATE TABLE revision_events (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    flashcard_id INTEGER NOT NULL,
+    reviewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_revision_events_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_revision_events_flashcard
+        FOREIGN KEY (flashcard_id)
+        REFERENCES flashcards(id)
+        ON DELETE CASCADE
+);
+
+-- =========================
 -- INDEX POUR AMÉLIORER LES REQUÊTES
 -- =========================
 CREATE INDEX idx_flashcards_owner_id 
@@ -113,6 +133,9 @@ ON matieres(owner_id);
 
 CREATE INDEX idx_question_responses_flashcard_id 
 ON question_responses(flashcard_id);
+
+CREATE INDEX idx_revision_events_user_reviewed_at
+ON revision_events(user_id, reviewed_at);
 
 CREATE INDEX idx_shares_flashcard_id 
 ON shares(flashcard_id);

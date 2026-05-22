@@ -5,7 +5,6 @@
 class FlashcardFormView {
 	public function render(): void {
 		$user = $GLOBALS['currentUser'] ?? null;
-		$firstName = $user?->firstName ?? 'Utilisateur';
 		$mode = $GLOBALS['flashcardFormMode'] ?? 'create';
 		$data = $GLOBALS['flashcardFormData'] ?? [];
 		$errors = $GLOBALS['flashcardFormErrors'] ?? [];
@@ -14,6 +13,10 @@ class FlashcardFormView {
 		$isEdit = $mode === 'edit';
 		$action = $isEdit ? '?action=updateFlashcard' : '?action=storeFlashcard';
 		$selectedUsers = array_map('intval', $data['sharedUserIds'] ?? []);
+		$questionResponses = $data['questionResponses'] ?? $this->questionResponsesFromPostArrays($data);
+		if (empty($questionResponses)) {
+			$questionResponses = [['question' => '', 'response' => '']];
+		}
 		?>
 		<!DOCTYPE html>
 		<html lang="fr">
@@ -26,52 +29,19 @@ class FlashcardFormView {
 		</head>
 		<body class="home-body">
 			<main class="home-shell flashcards-shell">
-				<aside class="home-sidebar" aria-label="Navigation principale">
-					<a class="home-brand flashmind-brand" href="?action=dashboard">
-						<span class="brand-icon">F</span>
-						<span class="brand-copy">
-							<strong>FlashMind</strong>
-							<small>Fiches de révision</small>
-						</span>
-					</a>
-
-					<nav class="home-nav">
-						<a href="?action=dashboard" class="nav-item">
-							<span class="nav-icon">⌂</span>
-							<span>Accueil</span>
-						</a>
-						<a href="?action=flashcards" class="nav-item active">
-							<span class="nav-icon">□</span>
-							<span>Mes fiches</span>
-						</a>
-						<a href="#" class="nav-item">
-							<span class="nav-icon">↗</span>
-							<span>Partagées avec moi</span>
-						</a>
-						<a href="?action=dashboard" class="nav-item">
-							<span class="nav-icon">▣</span>
-							<span>Matières</span>
-						</a>
-					</nav>
-
-					<a href="?action=logout" class="nav-item logout-link">
-						<span class="nav-icon">⇥</span>
-						<span>Déconnexion</span>
-					</a>
-				</aside>
+				<?php HomeNavView::render('flashcards'); ?>
 
 				<section class="home-content flashcards-content">
-					<div class="page-user-menu" aria-label="Utilisateur connecté">
-						<span class="user-avatar"><?= $this->e($this->initials($firstName)) ?></span>
-						<span><?= $this->e($firstName) ?></span>
-						<span class="user-chevron">⌄</span>
-					</div>
-
-					<header class="flashcard-form-header">
-						<a class="back-link" href="?action=flashcards">‹ Mes fiches</a>
-						<h1><?= $isEdit ? 'Modifier la fiche' : 'Créer une fiche' ?></h1>
-						<p><?= $isEdit ? 'Mettez à jour le titre, le contenu et les utilisateurs partagés.' : 'Ajoutez une nouvelle fiche et choisissez avec qui la partager.' ?></p>
-					</header>
+					<?php
+					PageHeaderView::render(
+						$user,
+						$isEdit ? 'Modifier la fiche' : 'Créer une fiche',
+						$isEdit ? 'Mettez a jour le titre, les questions/reponses et les utilisateurs partages.' : 'Ajoutez une nouvelle fiche avec ses questions/reponses et choisissez avec qui la partager.',
+						'',
+						'?action=flashcards',
+						'Mes fiches'
+					);
+					?>
 
 					<form class="flashcard-editor" method="POST" action="<?= $this->e($action) ?>" novalidate>
 						<?php if ($isEdit): ?>
@@ -119,17 +89,43 @@ class FlashcardFormView {
 								<?php endif; ?>
 							</div>
 
-							<div class="form-field <?= isset($errors['content']) ? 'has-error' : '' ?>">
-								<label for="flashcard-content">Contenu</label>
-								<textarea
-									id="flashcard-content"
-									name="content"
-									rows="9"
-									placeholder="Saisissez le contenu de la fiche..."
-									required
-								><?= $this->e($data['content'] ?? '') ?></textarea>
-								<?php if (isset($errors['content'])): ?>
-									<span class="field-error"><?= $this->e($errors['content']) ?></span>
+							<div class="form-field <?= isset($errors['questionResponses']) ? 'has-error' : '' ?>">
+								<div class="question-response-heading">
+									<label>Questions / réponses</label>
+									<button class="secondary-button compact-button" type="button" data-add-qa>Ajouter</button>
+								</div>
+
+								<div class="question-response-list" data-qa-list>
+									<?php foreach ($questionResponses as $index => $questionResponse): ?>
+										<div class="question-response-item" data-qa-item>
+											<div class="question-response-item-header">
+												<strong>Carte <?= (int)$index + 1 ?></strong>
+												<button class="remove-qa-button" type="button" data-remove-qa>Supprimer</button>
+											</div>
+
+											<label for="flashcard-question-<?= (int)$index ?>">Question</label>
+											<textarea
+												id="flashcard-question-<?= (int)$index ?>"
+												name="questions[]"
+												rows="3"
+												placeholder="Ex. À quoi sert le modèle OSI ?"
+												required
+											><?= $this->e($questionResponse['question'] ?? '') ?></textarea>
+
+											<label for="flashcard-response-<?= (int)$index ?>">Réponse</label>
+											<textarea
+												id="flashcard-response-<?= (int)$index ?>"
+												name="responses[]"
+												rows="4"
+												placeholder="Saisissez la réponse attendue..."
+												required
+											><?= $this->e($questionResponse['response'] ?? '') ?></textarea>
+										</div>
+									<?php endforeach; ?>
+								</div>
+
+								<?php if (isset($errors['questionResponses'])): ?>
+									<span class="field-error"><?= $this->e($errors['questionResponses']) ?></span>
 								<?php endif; ?>
 							</div>
 						</div>
@@ -205,6 +201,27 @@ class FlashcardFormView {
 		}
 
 		return mb_strtoupper($initials !== '' ? $initials : 'U');
+	}
+
+	private function questionResponsesFromPostArrays(array $data): array {
+		$questions = $data['questions'] ?? [];
+		$responses = $data['responses'] ?? [];
+
+		if (!is_array($questions) || !is_array($responses)) {
+			return [['question' => '', 'response' => '']];
+		}
+
+		$questionResponses = [];
+		$count = max(count($questions), count($responses));
+
+		for ($index = 0; $index < $count; $index++) {
+			$questionResponses[] = [
+				'question' => (string)($questions[$index] ?? ''),
+				'response' => (string)($responses[$index] ?? ''),
+			];
+		}
+
+		return $questionResponses;
 	}
 
 	private function e(mixed $value): string {
