@@ -16,7 +16,7 @@ class ShareRepository {
 
         $search = trim($filters['q'] ?? '');
         if ($search !== '') {
-            $where[] = '(LOWER(f.title) LIKE :search OR LOWER(COALESCE(f.theme, \'\')) LIKE :search OR LOWER(COALESCE(f.subject, \'\')) LIKE :search)';
+            $where[] = '(LOWER(f.title) LIKE :search OR LOWER(COALESCE(f.subject, \'\')) LIKE :search)';
             $params['search'] = '%' . strtolower($search) . '%';
         }
 
@@ -36,7 +36,6 @@ class ShareRepository {
                 f.id AS flashcard_id,
                 f.title,
                 f.subject,
-                f.theme,
                 COALESCE(m.name, f.subject, \'Sans matiere\') AS matiere_name,
                 COALESCE(m.color, \'blue\') AS matiere_color,
                 u.id AS owner_id,

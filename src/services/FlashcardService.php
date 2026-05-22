@@ -44,7 +44,6 @@ class FlashcardService {
             'matiereId' => $matiereId,
             'title' => $title,
             'subject' => trim($data['subject'] ?? ''),
-            'theme' => trim($data['theme'] ?? '') ?: $this->buildPreviewFromQuestionResponses($questionResponses),
             'questionResponses' => $questionResponses,
         ]);
         $flashcard->id = $this->flashcardRepo->create($flashcard);
@@ -366,17 +365,6 @@ class FlashcardService {
         return $hasCompleteQuestionResponse
             ? null
             : 'Ajoute au moins une question et sa reponse.';
-    }
-
-    /**
-     * @param array<int, array<string, string>> $questionResponses
-     */
-    private function buildPreviewFromQuestionResponses(array $questionResponses): string {
-        $first = $questionResponses[0] ?? [];
-        $question = trim((string)($first['question'] ?? ''));
-        $response = trim((string)($first['response'] ?? ''));
-
-        return mb_substr(trim($question . ' ' . $response), 0, 255);
     }
 
     private function findMatiereName(?int $matiereId, int $ownerId): string {

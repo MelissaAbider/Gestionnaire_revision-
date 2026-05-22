@@ -72,13 +72,6 @@ class FlashcardDetailView {
 								</div>
 							</div>
 
-							<?php if (!empty($flashcard['theme'])): ?>
-								<div class="detail-preview">
-									<span>Aperçu</span>
-									<p><?= $this->e($flashcard['theme']) ?></p>
-								</div>
-							<?php endif; ?>
-
 							<div class="detail-shares">
 								<span>Partagée avec</span>
 								<?= $this->renderShares($flashcard['shared_with'] ?? []) ?>

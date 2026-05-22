@@ -47,7 +47,6 @@ CREATE TABLE flashcards (
     matiere_id INTEGER,
     title VARCHAR(255) NOT NULL,
     subject VARCHAR(255),
-    theme VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

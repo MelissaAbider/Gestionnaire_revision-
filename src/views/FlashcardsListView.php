@@ -181,7 +181,6 @@ class FlashcardsListView {
 
 	private function subtitle(array $flashcard): string {
 		$parts = array_filter([
-			trim((string)($flashcard['theme'] ?? '')),
 			trim((string)($flashcard['subject'] ?? '')),
 		]);
 

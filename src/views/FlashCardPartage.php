@@ -76,7 +76,7 @@ class FlashCardPartage {
 										</span>
 										<span>
 											<strong><?= htmlspecialchars($flashcard['title'] ?? 'Sans titre') ?></strong>
-											<small><?= htmlspecialchars($this->excerpt($flashcard['theme'] ?: ($flashcard['subject'] ?? ''))) ?></small>
+											<small><?= htmlspecialchars($this->excerpt($flashcard['subject'] ?? '')) ?></small>
 										</span>
 									</span>
 									<span>

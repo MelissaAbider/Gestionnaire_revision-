@@ -17,8 +17,8 @@ class FlashcardRepository {
 
         try {
             $stmt = $this->pdo->prepare(
-                'INSERT INTO flashcards (owner_id, matiere_id, title, subject, theme, created_at, updated_at)
-                VALUES (:owner_id, :matiere_id, :title, :subject, :theme, :created_at, :updated_at)
+                'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
+                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
                 RETURNING id'
             );
             $stmt->execute([
@@ -26,7 +26,6 @@ class FlashcardRepository {
                 'matiere_id' => $flashcard->matiereId,
                 'title' => $flashcard->title,
                 'subject' => $flashcard->subject,
-                'theme' => $flashcard->theme,
                 'created_at' => $flashcard->createdAt->format('Y-m-d H:i:s'),
                 'updated_at' => $flashcard->updatedAt->format('Y-m-d H:i:s'),
             ]);
@@ -54,15 +53,14 @@ class FlashcardRepository {
         array $sharedUserIds
     ): int {
         $now = date('Y-m-d H:i:s');
-        $themePreview = $this->buildThemePreview($questionResponses);
 
         $this->pdo->beginTransaction();
 
         try {
             if ($this->columnExists('flashcards', 'matiere_id')) {
                 $stmt = $this->pdo->prepare(
-                    'INSERT INTO flashcards (owner_id, matiere_id, title, subject, theme, created_at, updated_at)
-                    VALUES (:owner_id, :matiere_id, :title, :subject, :theme, :created_at, :updated_at)
+                    'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
+                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -70,21 +68,19 @@ class FlashcardRepository {
                     'matiere_id' => $matiereId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
             } else {
                 $stmt = $this->pdo->prepare(
-                    'INSERT INTO flashcards (owner_id, title, subject, theme, created_at, updated_at)
-                    VALUES (:owner_id, :title, :subject, :theme, :created_at, :updated_at)
+                    'INSERT INTO flashcards (owner_id, title, subject, created_at, updated_at)
+                    VALUES (:owner_id, :title, :subject, :created_at, :updated_at)
                     RETURNING id'
                 );
                 $stmt->execute([
                     'owner_id' => $ownerId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
@@ -115,7 +111,6 @@ class FlashcardRepository {
         array $sharedUserIds
     ): void {
         $now = date('Y-m-d H:i:s');
-        $themePreview = $this->buildThemePreview($questionResponses);
 
         if (!$this->findByIdForUser($id, $ownerId)) {
             throw new \RuntimeException('Fiche introuvable.');
@@ -130,7 +125,6 @@ class FlashcardRepository {
                     SET title = :title,
                         matiere_id = :matiere_id,
                         subject = :subject,
-                        theme = :theme,
                         updated_at = :updated_at
                     WHERE id = :id AND owner_id = :owner_id'
                 );
@@ -140,7 +134,6 @@ class FlashcardRepository {
                     'title' => $title,
                     'matiere_id' => $matiereId,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'updated_at' => $now,
                 ]);
             } else {
@@ -148,7 +141,6 @@ class FlashcardRepository {
                     'UPDATE flashcards
                     SET title = :title,
                         subject = :subject,
-                        theme = :theme,
                         updated_at = :updated_at
                     WHERE id = :id AND owner_id = :owner_id'
                 );
@@ -157,7 +149,6 @@ class FlashcardRepository {
                     'owner_id' => $ownerId,
                     'title' => $title,
                     'subject' => $matiereName,
-                    'theme' => $themePreview,
                     'updated_at' => $now,
                 ]);
             }
@@ -274,7 +265,6 @@ class FlashcardRepository {
                     f.owner_id,
                     f.title,
                     f.subject,
-                    f.theme,
                     f.created_at,
                     f.updated_at,
                     COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
@@ -302,7 +292,6 @@ class FlashcardRepository {
                     f.owner_id,
                     f.title,
                     f.subject,
-                    f.theme,
                     f.created_at,
                     f.updated_at,
                     COALESCE(NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
@@ -351,7 +340,6 @@ class FlashcardRepository {
             'is_owner' => (int)$row['owner_id'] === $userId,
             'title' => $row['title'] ?? '',
             'subject' => $row['subject'] ?? '',
-            'theme' => $row['theme'] ?? '',
             'created_at' => $row['created_at'] ?? null,
             'updated_at' => $row['updated_at'] ?? null,
             'matiere_name' => $row['matiere_name'] ?? 'Sans matière',
@@ -373,7 +361,6 @@ class FlashcardRepository {
                     f.id,
                     f.title,
                     f.subject,
-                    f.theme,
                     f.created_at,
                     f.updated_at,
                     COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matiere\') AS matiere_name,
@@ -390,7 +377,6 @@ class FlashcardRepository {
                     f.id,
                     f.title,
                     f.subject,
-                    f.theme,
                     f.created_at,
                     f.updated_at,
                     COALESCE(NULLIF(f.subject, \'\'), \'Sans matiere\') AS matiere_name,
@@ -418,8 +404,8 @@ class FlashcardRepository {
 
         if ($hasMatiereRelation) {
             $stmt = $this->pdo->prepare(
-                'SELECT f.id, f.title, f.subject, f.theme, f.created_at, f.updated_at,
-                    COALESCE(m.name, NULLIF(f.subject, \'\'), NULLIF(f.theme, \'\'), \'Sans matière\') AS matiere_name,
+                'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COALESCE(m.name, NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     COALESCE(m.color, \'blue\') AS matiere_color
                 FROM flashcards f
                 LEFT JOIN matieres m ON m.id = f.matiere_id AND m.owner_id = f.owner_id
@@ -428,8 +414,8 @@ class FlashcardRepository {
             );
         } else {
             $stmt = $this->pdo->prepare(
-                'SELECT f.id, f.title, f.subject, f.theme, f.created_at, f.updated_at,
-                    COALESCE(NULLIF(f.subject, \'\'), NULLIF(f.theme, \'\'), \'Sans matière\') AS matiere_name,
+                'SELECT f.id, f.title, f.subject, f.created_at, f.updated_at,
+                    COALESCE(NULLIF(f.subject, \'\'), \'Sans matière\') AS matiere_name,
                     \'blue\' AS matiere_color
                 FROM flashcards f
                 WHERE f.owner_id = :owner_id
@@ -449,7 +435,6 @@ class FlashcardRepository {
                     'id' => $id,
                     'title' => $row['title'] ?? '',
                     'subject' => $row['subject'] ?? '',
-                    'theme' => $row['theme'] ?? '',
                     'created_at' => $row['created_at'] ?? null,
                     'updated_at' => $row['updated_at'] ?? null,
                     'matiere_name' => $row['matiere_name'] ?? 'Sans matière',
@@ -499,18 +484,6 @@ class FlashcardRepository {
         }
 
         return $shares;
-    }
-
-    /**
-     * @param array<int, array<string, string>> $questionResponses
-     */
-    private function buildThemePreview(array $questionResponses): string {
-        $first = $questionResponses[0] ?? [];
-        $question = trim((string)($first['question'] ?? ''));
-        $response = trim((string)($first['response'] ?? ''));
-        $preview = trim($question . ' ' . $response);
-
-        return mb_substr($preview, 0, 255);
     }
 
     /**

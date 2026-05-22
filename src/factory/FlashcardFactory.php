@@ -15,7 +15,6 @@ class FlashcardFactory {
             'matiereId' => $row['matiere_id'] ?? null,
             'title' => $row['title'] ?? '',
             'subject' => $row['subject'] ?? '',
-            'theme' => $row['theme'] ?? '',
             'questionResponses' => $row['questionResponses'] ?? [],
             'createdAt' => $row['created_at'] ?? date('Y-m-d H:i:s'),
             'updatedAt' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
