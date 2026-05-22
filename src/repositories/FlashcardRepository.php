@@ -20,7 +20,7 @@ class FlashcardRepository {
         try {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
-                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
+                VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, NULL)
                 RETURNING id'
             );
             $stmt->execute([
@@ -29,7 +29,6 @@ class FlashcardRepository {
                 'title' => $flashcard->title,
                 'subject' => $flashcard->subject,
                 'created_at' => $flashcard->createdAt->format('Y-m-d H:i:s'),
-                'updated_at' => $flashcard->updatedAt->format('Y-m-d H:i:s'),
             ]);
 
             $id = (int)$stmt->fetchColumn();
@@ -62,7 +61,7 @@ class FlashcardRepository {
             if ($this->columnExists('flashcards', 'matiere_id')) {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO flashcards (owner_id, matiere_id, title, subject, created_at, updated_at)
-                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, :updated_at)
+                    VALUES (:owner_id, :matiere_id, :title, :subject, :created_at, NULL)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -71,12 +70,11 @@ class FlashcardRepository {
                     'title' => $title,
                     'subject' => $matiereName,
                     'created_at' => $now,
-                    'updated_at' => $now,
                 ]);
             } else {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO flashcards (owner_id, title, subject, created_at, updated_at)
-                    VALUES (:owner_id, :title, :subject, :created_at, :updated_at)
+                    VALUES (:owner_id, :title, :subject, :created_at, NULL)
                     RETURNING id'
                 );
                 $stmt->execute([
@@ -84,7 +82,6 @@ class FlashcardRepository {
                     'title' => $title,
                     'subject' => $matiereName,
                     'created_at' => $now,
-                    'updated_at' => $now,
                 ]);
             }
 

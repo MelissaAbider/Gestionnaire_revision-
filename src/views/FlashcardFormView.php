@@ -43,7 +43,7 @@ class FlashcardFormView {
 					);
 					?>
 
-					<form class="flashcard-editor" method="POST" action="<?= $this->e($action) ?>" novalidate>
+					<form class="flashcard-editor" method="POST" action="<?= $this->e($action) ?>" data-flashcard-form novalidate>
 						<input type="hidden" name="id" value="<?= $isEdit ? (int)($data['id'] ?? 0) : '' ?>">
 
 						<?php if (!empty($errors['_form'])): ?>
@@ -70,6 +70,7 @@ class FlashcardFormView {
 									<?php endif; ?>
 									<span data-title-count>0/150</span>
 								</div>
+								<span class="field-error" data-error-for="title"></span>
 							</div>
 
 							<div class="form-field">
@@ -125,6 +126,7 @@ class FlashcardFormView {
 								<?php if (isset($errors['questionResponses'])): ?>
 									<span class="field-error"><?= $this->e($errors['questionResponses']) ?></span>
 								<?php endif; ?>
+								<span class="field-error" data-error-for="questionResponses"></span>
 							</div>
 						</div>
 

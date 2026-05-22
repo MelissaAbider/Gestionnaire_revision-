@@ -11,6 +11,7 @@ class UserFactory {
 			'firstName' => trim($data['firstName'] ?? ''),
 			'lastName' => trim($data['lastName'] ?? ''),
 			'email' => strtolower(trim($data['email'] ?? '')),
+			'birthDate' => trim($data['birthDate'] ?? ''),
 			'passwordHash' => $data['passwordHash'] ?? '',
 			'createdAt' => $data['createdAt'] ?? date('Y-m-d H:i:s'),
 		];

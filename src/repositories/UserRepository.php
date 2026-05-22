@@ -19,6 +19,7 @@ class UserRepository {
 			'firstName' => $row['firstname'],
 			'lastName' => $row['lastname'],
 			'email' => $row['email'],
+			'birthDate' => $row['birth_date'] ?? '',
 			'passwordHash' => $row['password_hash'],
 			'createdAt' => $row['created_at'],
 		]);
@@ -34,17 +35,19 @@ class UserRepository {
 			'firstName' => $row['firstname'],
 			'lastName' => $row['lastname'],
 			'email' => $row['email'],
+			'birthDate' => $row['birth_date'] ?? '',
 			'passwordHash' => $row['password_hash'],
 			'createdAt' => $row['created_at'],
 		]);
 	}
 
 	public function create(User $user): int {
-		$stmt = $this->pdo->prepare('INSERT INTO users (firstname, lastname, email, password_hash, created_at) VALUES (:firstname, :lastname, :email, :password_hash, :created_at) RETURNING id');
+		$stmt = $this->pdo->prepare('INSERT INTO users (firstname, lastname, email, birth_date, password_hash, created_at) VALUES (:firstname, :lastname, :email, :birth_date, :password_hash, :created_at) RETURNING id');
 		$stmt->execute([
 			'firstname' => $user->firstName,
 			'lastname' => $user->lastName,
 			'email' => $user->email,
+			'birth_date' => $user->birthDate,
 			'password_hash' => $user->passwordHash,
 			'created_at' => $user->createdAt,
 		]);

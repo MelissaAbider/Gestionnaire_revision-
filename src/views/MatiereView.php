@@ -49,7 +49,7 @@ class MatiereView {
 									</div>
 								</div>
 								<span class="subject-color <?= htmlspecialchars($matiere->color) ?>"></span>
-								<form class="edit-subject-form" method="POST" action="?action=updateMatiere">
+								<form class="edit-subject-form" method="POST" action="?action=updateMatiere" data-matiere-form novalidate>
 									<input type="hidden" name="id" value="<?= (int) $matiere->id ?>">
 									<input type="text" name="name" value="<?= htmlspecialchars($matiere->name) ?>" aria-label="Nom de la matiere" required>
 									<select name="color" aria-label="Couleur de la matiere">
@@ -59,6 +59,7 @@ class MatiereView {
 										<option value="orange" <?= $matiere->color === 'orange' ? 'selected' : '' ?>>Orange</option>
 										<option value="indigo" <?= $matiere->color === 'indigo' ? 'selected' : '' ?>>Indigo</option>
 									</select>
+									<span class="subject-field-error" data-matiere-error></span>
 									<button type="submit">Modifier</button>
 								</form>
 								<form method="POST" action="?action=deleteMatiere" onsubmit="return confirm('Supprimer cette matiere ? Les flashcards liees seront conservees sans matiere.');">
@@ -68,7 +69,7 @@ class MatiereView {
 							</article>
 						<?php endforeach; ?>
 
-						<form class="add-subject-card" method="POST" action="?action=createMatiere">
+						<form class="add-subject-card" method="POST" action="?action=createMatiere" data-matiere-form novalidate>
 							<span class="add-icon">+</span>
 							<label for="matiere-name">Ajouter une matiere</label>
 							<input type="text" id="matiere-name" name="name" placeholder="Nom de la matiere" required>
@@ -79,11 +80,13 @@ class MatiereView {
 								<option value="orange">Orange</option>
 								<option value="indigo">Indigo</option>
 							</select>
+							<span class="subject-field-error" data-matiere-error></span>
 							<button type="submit">Creer</button>
 						</form>
 					</div>
 				</section>
 			</main>
+			<script src="/js/script.js" defer></script>
 			<script src="/js/session-timeout.js"></script>
 		</body>
 		</html>

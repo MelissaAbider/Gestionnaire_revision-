@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     firstname VARCHAR(100) NOT NULL,
     lastname VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    birth_date CHAR(8) NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

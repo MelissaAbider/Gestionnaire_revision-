@@ -221,8 +221,49 @@ body {
     box-shadow: 0 0 0 4px rgba(82, 71, 247, 0.1);
 }
 
+.form-group.has-error input {
+    color: #7a271a;
+    background: #fff1f0;
+    border-color: #fda29b;
+}
+
+.form-group.has-error input:focus {
+    border-color: #d92d20;
+    box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.12);
+}
+
 .form-group input::placeholder {
     color: #a0aec0;
+}
+
+.auth-field-error {
+    min-height: 16px;
+    color: #b42318;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.auth-field-error:empty {
+    display: none;
+}
+
+.subject-field-error {
+    color: #b42318;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.subject-field-error:empty {
+    display: none;
+}
+
+.edit-subject-form.has-error input,
+.add-subject-card.has-error input {
+    color: #7a271a;
+    background: #fff1f0;
+    border-color: #fda29b;
 }
 
 .password-hint {
@@ -2882,6 +2923,11 @@ body {
 .form-field.has-error input,
 .form-field.has-error textarea,
 .form-field.has-error select {
+    border-color: #f43f5e;
+    background: #fff1f2;
+}
+
+.question-response-item.has-error textarea.is-invalid {
     border-color: #f43f5e;
     background: #fff1f2;
 }

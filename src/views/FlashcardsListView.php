@@ -165,16 +165,20 @@ class FlashcardsListView {
 		$createdAt = $flashcard['created_at'] ?? null;
 		$updatedAt = $flashcard['updated_at'] ?? null;
 
-		if ($this->isModifiedAfterCreation($createdAt, $updatedAt)) {
+		if ($this->hasModificationDate($createdAt, $updatedAt)) {
 			return 'Modifiée ' . $this->relativeDate((string)$updatedAt);
 		}
 
 		return 'Créée ' . $this->relativeDate(is_string($createdAt) ? $createdAt : null);
 	}
 
-	private function isModifiedAfterCreation(mixed $createdAt, mixed $updatedAt): bool {
-		if (!is_string($createdAt) || !is_string($updatedAt) || $createdAt === '' || $updatedAt === '') {
+	private function hasModificationDate(mixed $createdAt, mixed $updatedAt): bool {
+		if (!is_string($updatedAt) || trim($updatedAt) === '') {
 			return false;
+		}
+
+		if (!is_string($createdAt) || trim($createdAt) === '') {
+			return true;
 		}
 
 		$createdTimestamp = strtotime($createdAt);
