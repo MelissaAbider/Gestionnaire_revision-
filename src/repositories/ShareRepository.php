@@ -32,6 +32,7 @@ class ShareRepository {
             'SELECT
                 s.id AS share_id,
                 s.shared_at,
+                f.id AS id,
                 f.id AS flashcard_id,
                 f.title,
                 f.subject,
@@ -66,5 +67,33 @@ class ShareRepository {
         $stmt->execute(['user_id' => $userId]);
 
         return array_filter(array_column($stmt->fetchAll(), 'name'));
+    }
+
+    public function countSharedWithUser(int $userId): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*)
+            FROM shares s
+            INNER JOIN flashcards f ON f.id = s.flashcard_id
+            WHERE s.user_id = :user_id'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function countSharedWithUserSince(int $userId, \DateTimeInterface $since): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*)
+            FROM shares s
+            INNER JOIN flashcards f ON f.id = s.flashcard_id
+            WHERE s.user_id = :user_id
+            AND s.shared_at >= :since'
+        );
+        $stmt->execute([
+            'user_id' => $userId,
+            'since' => $since->format('Y-m-d H:i:s'),
+        ]);
+
+        return (int)$stmt->fetchColumn();
     }
 }

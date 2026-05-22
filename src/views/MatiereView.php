@@ -20,44 +20,10 @@ class MatiereView {
 		</head>
 		<body class="home-body" data-session-timeout="1200">
 			<main class="home-shell">
-				<aside class="home-sidebar" aria-label="Navigation principale">
-					<a class="home-brand" href="?action=dashboard">
-						<span class="brand-icon">F</span>
-						<span>FlashMind</span>
-					</a>
-
-					<nav class="home-nav">
-						<a href="?action=dashboard" class="nav-item">
-							<span class="nav-icon">⌂</span>
-							<span>Accueil</span>
-						</a>
-						<a href="#" class="nav-item">
-							<span class="nav-icon">□</span>
-							<span>Mes fiches</span>
-						</a>
-						<a href="?action=partagees" class="nav-item">
-							<span class="nav-icon">↗</span>
-							<span>Partagees avec moi</span>
-						</a>
-						<a href="?action=matieres" class="nav-item active">
-							<span class="nav-icon">▣</span>
-							<span>Matieres</span>
-						</a>
-					</nav>
-
-					<a href="?action=logout" class="nav-item logout-link">
-						<span class="nav-icon">⇥</span>
-						<span>Deconnexion</span>
-					</a>
-				</aside>
+				<?php HomeNavView::render('matieres'); ?>
 
 				<section class="home-content">
-					<header class="home-header">
-						<div>
-							<p class="home-kicker">Bonjour <?= htmlspecialchars($firstName) ?></p>
-							<h1>Mes matieres</h1>
-						</div>
-					</header>
+					<?php PageHeaderView::render($user, 'Mes matieres', 'Organisez vos matieres et gardez vos fiches bien rangees.'); ?>
 
 					<?php if ($loadError): ?>
 						<div class="home-alert">

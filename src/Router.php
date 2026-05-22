@@ -24,6 +24,9 @@ class Router {
 			case 'flashcards':
 				$this->renderFlashcards();
 				break;
+			case 'viewFlashcard':
+				$this->renderFlashcardDetail((int)($_GET['id'] ?? 0));
+				break;
 			case 'createFlashcard':
 				$this->renderFlashcardForm();
 				break;
@@ -38,6 +41,9 @@ class Router {
 				break;
 			case 'deleteFlashcard':
 				$this->deleteFlashcard();
+				break;
+			case 'recordRevision':
+				$this->recordRevision();
 				break;
 			case 'register':
 				$authController->registerForm();
@@ -73,10 +79,13 @@ class Router {
 		$base = __DIR__ . '/';
 		$files = [
 			$base . 'controllers/AuthController.php',
+			$base . 'views/HomeNavView.php',
+			$base . 'views/PageHeaderView.php',
 			$base . 'views/AccueilView.php',
 			$base . 'views/MatiereView.php',
 			$base . 'views/FlashCardPartage.php',
 			$base . 'views/FlashcardFormView.php',
+			$base . 'views/FlashcardDetailView.php',
 			$base . 'views/FlashcardsListView.php',
 			$base . 'views/RegisterView.php',
 			$base . 'views/LoginView.php',
@@ -85,16 +94,20 @@ class Router {
 			$base . 'models/Matiere.php',
 			$base . 'models/Flashcard.php',
 			$base . 'models/Share.php',
+			$base . 'models/QuestionResponse.php',
 			$base . 'factory/UserFactory.php',
 			$base . 'factory/MatiereFactory.php',
 			$base . 'factory/FlashcardFactory.php',
+			$base . 'factory/QuestionResponseFactory.php',
 			$base . 'repositories/UserRepository.php',
 			$base . 'repositories/MatiereRepository.php',
+			$base . 'repositories/QuestionResponseRepository.php',
 			$base . 'repositories/FlashcardRepository.php',
 			$base . 'repositories/ShareRepository.php',
 			$base . 'services/AuthService.php',
 			$base . 'services/MatiereService.php',
 			$base . 'services/FlashcardService.php',
+			$base . 'services/StatsService.php',
 		];
 
 		foreach ($files as $f) {
@@ -107,6 +120,8 @@ class Router {
 		$GLOBALS['currentUser'] = $user;
 		$this->loadMatieresForUser((int)$user->id);
 		$this->loadRecentActivityForUser((int)$user->id);
+		$this->loadSharedStatsForUser((int)$user->id);
+		$this->loadRevisionStatsForUser((int)$user->id);
 
 		$view = new AccueilView();
 		$view->render();
@@ -162,6 +177,34 @@ class Router {
 		}
 
 		$view = new FlashcardsListView();
+		$view->render();
+	}
+
+	private function renderFlashcardDetail(int $id): void {
+		$user = $this->requireUser();
+
+		if ($id <= 0) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		try {
+			$flashcardService = new FlashcardService();
+			$flashcard = $flashcardService->findViewForUser($id, (int)$user->id);
+		} catch (\Throwable $e) {
+			$flashcard = null;
+			$GLOBALS['flashcardDetailError'] = 'La fiche ne peut pas etre chargee pour le moment.';
+		}
+
+		if (!$flashcard) {
+			header('Location: ?action=flashcards');
+			exit;
+		}
+
+		$GLOBALS['currentUser'] = $user;
+		$GLOBALS['flashcardDetail'] = $flashcard;
+
+		$view = new FlashcardDetailView();
 		$view->render();
 	}
 
@@ -285,6 +328,43 @@ class Router {
 		exit;
 	}
 
+	private function recordRevision(): void {
+		header('Content-Type: application/json');
+
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(405);
+			echo json_encode(['success' => false]);
+			return;
+		}
+
+		$user = $this->requireUser();
+		$flashcardId = (int)($_POST['flashcard_id'] ?? 0);
+
+		if ($flashcardId <= 0) {
+			http_response_code(422);
+			echo json_encode(['success' => false]);
+			return;
+		}
+
+		try {
+			$flashcardService = new FlashcardService();
+			if (!$flashcardService->findViewForUser($flashcardId, (int)$user->id)) {
+				http_response_code(403);
+				echo json_encode(['success' => false]);
+				return;
+			}
+
+			$statsService = new StatsService();
+			$statsService->recordRevision((int)$user->id, $flashcardId);
+			$weekCount = $statsService->countRevisionsSince((int)$user->id, new DateTimeImmutable('-7 days'));
+
+			echo json_encode(['success' => true, 'weekCount' => $weekCount]);
+		} catch (\Throwable $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false]);
+		}
+	}
+
 	private function createMatiere(): void {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=matieres');
@@ -378,6 +458,29 @@ class Router {
 		} catch (\Throwable $e) {
 			$GLOBALS['recentActivities'] = [];
 			$GLOBALS['recentActivitiesError'] = 'Les activites recentes ne peuvent pas encore etre chargees.';
+		}
+	}
+
+	private function loadSharedStatsForUser(int $userId): void {
+		try {
+			$shareRepository = new ShareRepository();
+			$weekStart = new DateTimeImmutable('-7 days');
+			$GLOBALS['sharedFlashcardsCount'] = $shareRepository->countSharedWithUser($userId);
+			$GLOBALS['sharedFlashcardsWeekCount'] = $shareRepository->countSharedWithUserSince($userId, $weekStart);
+		} catch (\Throwable $e) {
+			$GLOBALS['sharedFlashcardsCount'] = 0;
+			$GLOBALS['sharedFlashcardsWeekCount'] = 0;
+			$GLOBALS['sharedFlashcardsStatsError'] = 'Les statistiques de partage ne peuvent pas encore etre chargees.';
+		}
+	}
+
+	private function loadRevisionStatsForUser(int $userId): void {
+		try {
+			$statsService = new StatsService();
+			$GLOBALS['weeklyRevisionCount'] = $statsService->countRevisionsSince($userId, new DateTimeImmutable('-7 days'));
+		} catch (\Throwable $e) {
+			$GLOBALS['weeklyRevisionCount'] = 0;
+			$GLOBALS['revisionStatsError'] = 'Les statistiques de revision ne peuvent pas encore etre chargees.';
 		}
 	}
 

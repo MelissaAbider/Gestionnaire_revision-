@@ -5,9 +5,6 @@
 class FlashCardPartage {
 	public function render(): void {
 		$user = $GLOBALS['currentUser'] ?? null;
-		$firstName = $user?->firstName ?: 'Utilisateur';
-		$lastName = $user?->lastName ?? '';
-		$initial = strtoupper(substr($firstName, 0, 1));
 		$sharedFlashcards = $GLOBALS['sharedFlashcards'] ?? [];
 		$sharedMatieres = $GLOBALS['sharedMatieres'] ?? [];
 		$error = $GLOBALS['sharedFlashcardsError'] ?? null;
@@ -25,49 +22,10 @@ class FlashCardPartage {
 		</head>
 		<body class="home-body" data-session-timeout="1200">
 			<main class="home-shell">
-				<aside class="home-sidebar" aria-label="Navigation principale">
-					<a class="home-brand" href="?action=dashboard">
-						<span class="brand-icon">F</span>
-						<span>FlashMind</span>
-					</a>
-
-					<nav class="home-nav">
-						<a href="?action=dashboard" class="nav-item">
-							<span class="nav-icon">⌂</span>
-							<span>Accueil</span>
-						</a>
-						<a href="?action=flashcards" class="nav-item">
-							<span class="nav-icon">□</span>
-							<span>Mes fiches</span>
-						</a>
-						<a href="?action=partagees" class="nav-item active">
-							<span class="nav-icon">↗</span>
-							<span>Partagees avec moi</span>
-						</a>
-						<a href="?action=matieres" class="nav-item">
-							<span class="nav-icon">▣</span>
-							<span>Matieres</span>
-						</a>
-					</nav>
-
-					<a href="?action=logout" class="nav-item logout-link">
-						<span class="nav-icon">⇥</span>
-						<span>Deconnexion</span>
-					</a>
-				</aside>
+				<?php HomeNavView::render('partagees'); ?>
 
 				<section class="home-content shared-page">
-					<header class="shared-topbar">
-						<div>
-							<h1>Partagees avec moi</h1>
-							<p>Retrouvez ici toutes les fiches de revision partagees par d'autres utilisateurs.</p>
-						</div>
-						<div class="dashboard-user">
-							<span class="user-avatar"><?= htmlspecialchars($initial) ?></span>
-							<strong><?= htmlspecialchars(trim($firstName . ' ' . $lastName)) ?></strong>
-							<span>⌄</span>
-						</div>
-					</header>
+					<?php PageHeaderView::render($user, 'Partagees avec moi', "Retrouvez ici toutes les fiches de revision partagees par d'autres utilisateurs."); ?>
 
 					<?php if ($error): ?>
 						<div class="home-alert">
@@ -110,7 +68,8 @@ class FlashCardPartage {
 							</div>
 						<?php else: ?>
 							<?php foreach ($sharedFlashcards as $flashcard): ?>
-								<a class="shared-table shared-row" href="#">
+								<?php $flashcardId = (int)($flashcard['flashcard_id'] ?? $flashcard['id'] ?? 0); ?>
+								<a class="shared-table shared-row" href="?action=viewFlashcard&id=<?= $flashcardId ?>">
 									<span class="shared-title-cell">
 										<span class="shared-card-icon <?= htmlspecialchars($this->colorClass($flashcard['matiere_color'] ?? 'blue')) ?>">
 											<?= htmlspecialchars($this->iconForMatiere($flashcard['matiere_name'] ?? '')) ?>
@@ -135,7 +94,7 @@ class FlashCardPartage {
 										</span>
 									</span>
 									<span><?= htmlspecialchars($this->formatDate($flashcard['shared_at'] ?? null)) ?></span>
-									<span class="shared-arrow">›</span>
+									<span class="shared-view-link">Voir <span>›</span></span>
 								</a>
 							<?php endforeach; ?>
 						<?php endif; ?>

@@ -10,6 +10,7 @@ class Flashcard {
     public string $title;
     public string $subject;
     public string $theme;
+    public array $questionResponses;
     public DateTime $createdAt;
     public DateTime $updatedAt;
 
@@ -20,6 +21,9 @@ class Flashcard {
         $this->title = $data['title'] ?? '';
         $this->subject = $data['subject'] ?? '';
         $this->theme = $data['theme'] ?? '';
+        $this->questionResponses = is_array($data['questionResponses'] ?? null)
+            ? $data['questionResponses']
+            : [];
         $this->createdAt = $data['createdAt'] instanceof DateTime
             ? $data['createdAt']
             : new DateTime($data['createdAt'] ?? 'now');
@@ -36,6 +40,7 @@ class Flashcard {
             'title' => $this->title,
             'subject' => $this->subject,
             'theme' => $this->theme,
+            'questionResponses' => $this->questionResponses,
             'createdAt' => $this->createdAt->format('Y-m-d H:i:s'),
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];

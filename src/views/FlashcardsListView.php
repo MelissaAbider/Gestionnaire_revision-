@@ -5,7 +5,6 @@
 class FlashcardsListView {
 	public function render(): void {
 		$user = $GLOBALS['currentUser'] ?? null;
-		$firstName = $user?->firstName ?? 'Utilisateur';
 		$flashcards = $GLOBALS['flashcards'] ?? [];
 		$filters = $GLOBALS['flashcardFilters'] ?? ['q' => '', 'matiere' => '', 'sort' => 'recent'];
 		$matiereOptions = $GLOBALS['matiereOptions'] ?? [];
@@ -22,57 +21,17 @@ class FlashcardsListView {
 		</head>
 		<body class="home-body">
 			<main class="home-shell flashcards-shell">
-				<aside class="home-sidebar" aria-label="Navigation principale">
-					<a class="home-brand flashmind-brand" href="?action=dashboard">
-						<span class="brand-icon">F</span>
-						<span class="brand-copy">
-							<strong>FlashMind</strong>
-							<small>Fiches de révision</small>
-						</span>
-					</a>
-
-					<nav class="home-nav">
-						<a href="?action=dashboard" class="nav-item">
-							<span class="nav-icon">⌂</span>
-							<span>Accueil</span>
-						</a>
-						<a href="?action=flashcards" class="nav-item active">
-							<span class="nav-icon">□</span>
-							<span>Mes fiches</span>
-						</a>
-						<a href="?action=partagees" class="nav-item">
-							<span class="nav-icon">↗</span>
-							<span>Partagées avec moi</span>
-						</a>
-						<a href="?action=matieres" class="nav-item">
-							<span class="nav-icon">▣</span>
-							<span>Matieres</span>
-						</a>
-					</nav>
-
-					<a href="?action=logout" class="nav-item logout-link">
-						<span class="nav-icon">⇥</span>
-						<span>Déconnexion</span>
-					</a>
-				</aside>
+				<?php HomeNavView::render('flashcards'); ?>
 
 				<section class="home-content flashcards-content">
-					<div class="page-user-menu" aria-label="Utilisateur connecté">
-						<span class="user-avatar"><?= $this->e($this->initials($firstName)) ?></span>
-						<span><?= $this->e($firstName) ?></span>
-						<span class="user-chevron">⌄</span>
-					</div>
+					<?php PageHeaderView::render($user, 'Mes fiches', 'Retrouvez ici toutes les fiches que vous avez creees.'); ?>
 
-					<header class="flashcards-header">
-						<div>
-							<h1>Mes fiches</h1>
-							<p>Retrouvez ici toutes les fiches que vous avez créées.</p>
-						</div>
+					<div class="flashcards-create-row">
 						<a class="create-flashcard-button" href="?action=createFlashcard">
 							<span>+</span>
 							<span>Créer une fiche</span>
 						</a>
-					</header>
+					</div>
 
 					<?php if ($loadError): ?>
 						<div class="home-alert">
@@ -166,6 +125,7 @@ class FlashcardsListView {
 										</td>
 										<td>
 											<div class="action-buttons">
+												<a href="?action=viewFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="action-button view" aria-label="Voir <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">◉</a>
 												<a href="?action=editFlashcard&id=<?= (int)($flashcard['id'] ?? 0) ?>" class="action-button edit" aria-label="Modifier <?= $this->e($flashcard['title'] ?? 'la fiche') ?>">✎</a>
 												<form class="inline-delete-form" method="POST" action="?action=deleteFlashcard" onsubmit="return confirm('Supprimer cette fiche de revision ?');">
 													<input type="hidden" name="id" value="<?= (int)($flashcard['id'] ?? 0) ?>">

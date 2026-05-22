@@ -6,12 +6,13 @@ class AccueilView {
 	public function render(): void {
 		$user = $GLOBALS['currentUser'] ?? null;
 		$firstName = $user?->firstName ?: 'Utilisateur';
-		$lastName = $user?->lastName ?? '';
-		$initial = strtoupper(substr($firstName, 0, 1));
 		$matieres = $GLOBALS['matieres'] ?? [];
 		$loadError = $GLOBALS['matiereLoadError'] ?? null;
 		$activities = $GLOBALS['recentActivities'] ?? [];
 		$activityError = $GLOBALS['recentActivitiesError'] ?? null;
+		$sharedFlashcardsCount = (int)($GLOBALS['sharedFlashcardsCount'] ?? 0);
+		$sharedFlashcardsWeekCount = (int)($GLOBALS['sharedFlashcardsWeekCount'] ?? 0);
+		$weeklyRevisionCount = (int)($GLOBALS['weeklyRevisionCount'] ?? 0);
 		$totalMatieres = count($matieres);
 		$totalFlashcards = array_reduce(
 			$matieres,
@@ -29,50 +30,10 @@ class AccueilView {
 		</head>
 		<body class="home-body dashboard-home" data-session-timeout="1200">
 			<main class="home-shell">
-				<aside class="home-sidebar" aria-label="Navigation principale">
-					<a class="home-brand" href="?action=dashboard">
-						<span class="brand-icon">F</span>
-						<span>FlashMind</span>
-					</a>
-
-					<nav class="home-nav">
-						<a href="?action=dashboard" class="nav-item active">
-							<span class="nav-icon">⌂</span>
-							<span>Accueil</span>
-						</a>
-						<a href="?action=flashcards" class="nav-item">
-							<span class="nav-icon">□</span>
-							<span>Mes fiches</span>
-						</a>
-						<a href="?action=partagees" class="nav-item">
-							<span class="nav-icon">↗</span>
-							<span>Partagées avec moi</span>
-						</a>
-						<a href="?action=matieres" class="nav-item">
-							<span class="nav-icon">▣</span>
-							<span>Matières</span>
-						</a>
-					</nav>
-
-					<a href="?action=logout" class="nav-item logout-link">
-						<span class="nav-icon">⇥</span>
-						<span>Déconnexion</span>
-					</a>
-				</aside>
+				<?php HomeNavView::render('dashboard'); ?>
 
 				<section class="home-content dashboard-main">
-					<header class="dashboard-topbar">
-						<div>
-							<h1>Bonjour, <?= htmlspecialchars($firstName) ?> !</h1>
-							<p>Pret a continuer vos revisions aujourd'hui ?</p>
-						</div>
-						<div class="dashboard-user">
-							<span class="notification-dot" aria-label="Notifications">!</span>
-							<span class="user-avatar"><?= htmlspecialchars($initial) ?></span>
-							<strong><?= htmlspecialchars(trim($firstName . ' ' . $lastName)) ?></strong>
-							<span>⌄</span>
-						</div>
-					</header>
+					<?php PageHeaderView::render($user, 'Bonjour, ' . $firstName . ' !', "Pret a continuer vos revisions aujourd'hui ?"); ?>
 
 					<?php if ($loadError): ?>
 						<div class="home-alert">
@@ -93,8 +54,8 @@ class AccueilView {
 							<span class="stat-icon green">♧</span>
 							<div>
 								<p>Partagees avec moi</p>
-								<strong>0</strong>
-								<small>+0 cette semaine</small>
+								<strong><?= $sharedFlashcardsCount ?></strong>
+								<small>+<?= $sharedFlashcardsWeekCount ?> cette semaine</small>
 							</div>
 						</article>
 						<article class="stat-card">
@@ -109,8 +70,8 @@ class AccueilView {
 							<span class="stat-icon blue">↗</span>
 							<div>
 								<p>Revisions cette semaine</p>
-								<strong><?= (int) $totalFlashcards ?></strong>
-								<small>+0% vs la semaine derniere</small>
+								<strong><?= $weeklyRevisionCount ?></strong>
+								<small>Cartes retournees cette semaine</small>
 							</div>
 						</article>
 					</section>

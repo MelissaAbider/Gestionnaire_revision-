@@ -19,6 +19,8 @@ class FlashcardService {
         $matiereId = isset($data['matiereId']) && $data['matiereId'] !== ''
             ? (int)$data['matiereId']
             : null;
+        $questionResponses = $this->normalizeQuestionResponses($data);
+        $questionResponseValidation = $this->validateQuestionResponses($questionResponses);
         $errors = [];
 
         if ($title === '') {
@@ -27,6 +29,10 @@ class FlashcardService {
 
         if ($matiereId !== null && !$this->matiereRepo->findByIdForUser($matiereId, $ownerId)) {
             $errors[] = 'La matiere selectionnee est introuvable.';
+        }
+
+        if ($questionResponseValidation !== null) {
+            $errors[] = $questionResponseValidation;
         }
 
         if (!empty($errors)) {
@@ -38,7 +44,8 @@ class FlashcardService {
             'matiereId' => $matiereId,
             'title' => $title,
             'subject' => trim($data['subject'] ?? ''),
-            'theme' => trim($data['theme'] ?? ''),
+            'theme' => trim($data['theme'] ?? '') ?: $this->buildPreviewFromQuestionResponses($questionResponses),
+            'questionResponses' => $questionResponses,
         ]);
         $flashcard->id = $this->flashcardRepo->create($flashcard);
 
@@ -61,6 +68,17 @@ class FlashcardService {
      */
     public function findListForUser(int $ownerId): array {
         return $this->flashcardRepo->findListForUser($ownerId);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findViewForUser(int $id, int $userId): ?array {
+        if ($id <= 0) {
+            return null;
+        }
+
+        return $this->flashcardRepo->findViewForUser($id, $userId);
     }
 
     /**
@@ -139,7 +157,7 @@ class FlashcardService {
         $id = $this->flashcardRepo->createFromForm(
             $ownerId,
             $normalized['title'],
-            $normalized['content'],
+            $normalized['questionResponses'],
             $normalized['matiereId'],
             $matiereName,
             $normalized['sharedUserIds']
@@ -166,7 +184,7 @@ class FlashcardService {
             $id,
             $ownerId,
             $normalized['title'],
-            $normalized['content'],
+            $normalized['questionResponses'],
             $normalized['matiereId'],
             $matiereName,
             $normalized['sharedUserIds']
@@ -197,7 +215,9 @@ class FlashcardService {
         return [
             'id' => null,
             'title' => '',
-            'content' => '',
+            'questionResponses' => [
+                ['question' => '', 'response' => ''],
+            ],
             'matiereId' => '',
             'sharedUserIds' => [],
         ];
@@ -228,7 +248,7 @@ class FlashcardService {
 
         return [
             'title' => trim($data['title'] ?? ''),
-            'content' => trim($data['content'] ?? ''),
+            'questionResponses' => $this->normalizeQuestionResponses($data),
             'matiereId' => $matiereId,
             'sharedUserIds' => array_values(array_unique(array_map('intval', $sharedUserIds))),
         ];
@@ -247,8 +267,9 @@ class FlashcardService {
             $errors['title'] = 'Le titre ne doit pas depasser 150 caracteres.';
         }
 
-        if ($data['content'] === '') {
-            $errors['content'] = 'Le contenu est obligatoire.';
+        $questionResponseValidation = $this->validateQuestionResponses($data['questionResponses'] ?? []);
+        if ($questionResponseValidation !== null) {
+            $errors['questionResponses'] = $questionResponseValidation;
         }
 
         if ($data['matiereId'] !== null && !$this->matiereRepo->findByIdForUser((int)$data['matiereId'], $ownerId)) {
@@ -256,6 +277,106 @@ class FlashcardService {
         }
 
         return $errors;
+    }
+
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function normalizeQuestionResponses(array $data): array {
+        if (isset($data['questionResponses']) && is_array($data['questionResponses'])) {
+            $questionResponses = [];
+
+            foreach ($data['questionResponses'] as $questionResponse) {
+                if (!is_array($questionResponse)) {
+                    continue;
+                }
+
+                $question = trim((string)($questionResponse['question'] ?? ''));
+                $response = trim((string)($questionResponse['response'] ?? ''));
+
+                if ($question === '' && $response === '') {
+                    continue;
+                }
+
+                $questionResponses[] = [
+                    'question' => $question,
+                    'response' => $response,
+                ];
+            }
+
+            return !empty($questionResponses)
+                ? $questionResponses
+                : [['question' => '', 'response' => '']];
+        }
+
+        $questions = $data['questions'] ?? [];
+        $responses = $data['responses'] ?? [];
+
+        if (!is_array($questions)) {
+            $questions = [];
+        }
+
+        if (!is_array($responses)) {
+            $responses = [];
+        }
+
+        $questionResponses = [];
+        $count = max(count($questions), count($responses));
+
+        for ($index = 0; $index < $count; $index++) {
+            $question = trim((string)($questions[$index] ?? ''));
+            $response = trim((string)($responses[$index] ?? ''));
+
+            if ($question === '' && $response === '') {
+                continue;
+            }
+
+            $questionResponses[] = [
+                'question' => $question,
+                'response' => $response,
+            ];
+        }
+
+        return !empty($questionResponses)
+            ? $questionResponses
+            : [['question' => '', 'response' => '']];
+    }
+
+    /**
+     * @param array<int, array<string, string>> $questionResponses
+     */
+    private function validateQuestionResponses(array $questionResponses): ?string {
+        $hasCompleteQuestionResponse = false;
+
+        foreach ($questionResponses as $questionResponse) {
+            $question = trim((string)($questionResponse['question'] ?? ''));
+            $response = trim((string)($questionResponse['response'] ?? ''));
+
+            if ($question === '' && $response === '') {
+                continue;
+            }
+
+            if ($question === '' || $response === '') {
+                return 'Chaque carte doit avoir une question et une reponse.';
+            }
+
+            $hasCompleteQuestionResponse = true;
+        }
+
+        return $hasCompleteQuestionResponse
+            ? null
+            : 'Ajoute au moins une question et sa reponse.';
+    }
+
+    /**
+     * @param array<int, array<string, string>> $questionResponses
+     */
+    private function buildPreviewFromQuestionResponses(array $questionResponses): string {
+        $first = $questionResponses[0] ?? [];
+        $question = trim((string)($first['question'] ?? ''));
+        $response = trim((string)($first['response'] ?? ''));
+
+        return mb_substr(trim($question . ' ' . $response), 0, 255);
     }
 
     private function findMatiereName(?int $matiereId, int $ownerId): string {
