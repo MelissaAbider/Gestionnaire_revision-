@@ -1,6 +1,11 @@
 <?php
 /**
  * Routeur de l'application
+ *
+ * RESPONSABLE PRINCIPAL : Alexandre BRUGGER
+ * Perimetre : navigation entre les pages et orchestration des actions.
+ * Points de contact : Melissa ABIDER pour auth, Asma AZRI pour fiches,
+ * Jana CHEHWAN pour matieres, Alban COUSIN pour partage.
  */
 class Router {
 	public function dispatch(): void {
@@ -39,18 +44,23 @@ class Router {
 				$this->recordRevision();
 				break;
 			case 'register':
+				// RESPONSABLE : Melissa ABIDER - affichage du formulaire d'inscription.
 				$authController->registerForm();
 				break;
 			case 'registerSubmit':
+				// RESPONSABLE : Melissa ABIDER - traitement inscription + erreurs.
 				$authController->registerSubmit();
 				break;
 			case 'login':
+				// RESPONSABLE : Melissa ABIDER - affichage du formulaire de connexion.
 				$authController->loginForm();
 				break;
 			case 'loginSubmit':
+				// RESPONSABLE : Melissa ABIDER - verification des identifiants.
 				$authController->loginSubmit();
 				break;
 			case 'logout':
+				// RESPONSABLE : Melissa ABIDER - destruction de session.
 				$authController->logout();
 				break;
 			case 'createMatiere':
@@ -108,6 +118,7 @@ class Router {
 	}
 
 	private function renderHome(): void {
+		// RESPONSABLE : Alexandre BRUGGER - donnees du tableau de bord.
 		$user = $this->requireUser();
 		$GLOBALS['currentUser'] = $user;
 		$this->loadMatieresForUser((int)$user->id);
@@ -120,6 +131,7 @@ class Router {
 	}
 
 	private function renderMatieres(): void {
+		// RESPONSABLE : Jana CHEHWAN - page d'organisation par matiere.
 		$user = $this->requireUser();
 		$GLOBALS['currentUser'] = $user;
 		$this->loadMatieresForUser((int)$user->id);
@@ -129,6 +141,7 @@ class Router {
 	}
 
 	private function renderFlashcards(): void {
+		// RESPONSABLES : Asma AZRI pour les fiches personnelles, Alban COUSIN pour les fiches partagees.
 		$user = $this->requireUser();
 		$filters = [
 			'q' => trim($_GET['q'] ?? ''),
@@ -171,6 +184,7 @@ class Router {
 	}
 
 	private function renderFlashcardDetail(int $id): void {
+		// RESPONSABLE : Asma AZRI - visualisation d'une fiche. Alban COUSIN intervient sur l'acces partage.
 		$user = $this->requireUser();
 
 		if ($id <= 0) {
@@ -199,6 +213,7 @@ class Router {
 	}
 
 	private function renderFlashcardForm(?int $id = null, ?array $formData = null, array $errors = []): void {
+		// RESPONSABLE : Asma AZRI - formulaire de creation/modification. Alban COUSIN intervient sur la selection des partages.
 		$user = $this->requireUser();
 		$flashcardService = new FlashcardService();
 		$isEdit = $id !== null && $id > 0;
@@ -234,6 +249,7 @@ class Router {
 	}
 
 	private function saveFlashcard(): void {
+		// RESPONSABLE : Asma AZRI - creation/modification des fiches. Alban COUSIN synchronise les utilisateurs partages.
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=flashcardForm');
 			exit;
@@ -268,6 +284,7 @@ class Router {
 	}
 
 	private function deleteFlashcard(): void {
+		// RESPONSABLE : Asma AZRI - suppression des fiches personnelles.
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=flashcards');
 			exit;
@@ -293,6 +310,7 @@ class Router {
 	}
 
 	private function recordRevision(): void {
+		// RESPONSABLE : Alexandre BRUGGER - alimente les statistiques du tableau de bord.
 		header('Content-Type: application/json');
 
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -330,6 +348,7 @@ class Router {
 	}
 
 	private function createMatiere(): void {
+		// RESPONSABLE : Jana CHEHWAN - creation d'une matiere.
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=matieres');
 			exit;
@@ -360,6 +379,7 @@ class Router {
 	}
 
 	private function updateMatiere(): void {
+		// RESPONSABLE : Jana CHEHWAN - modification d'une matiere.
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=matieres');
 			exit;
@@ -369,6 +389,7 @@ class Router {
 	}
 
 	private function deleteMatiere(): void {
+		// RESPONSABLE : Jana CHEHWAN - suppression d'une matiere.
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			header('Location: ?action=matieres');
 			exit;

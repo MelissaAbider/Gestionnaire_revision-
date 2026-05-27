@@ -1,6 +1,9 @@
 <?php
 /**
  * Modèle User
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : structure des donnees utilisateur utilisee par l'authentification.
  */
 
 class User {

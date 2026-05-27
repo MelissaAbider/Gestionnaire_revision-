@@ -1,5 +1,11 @@
 /**
  * Script JavaScript principal
+ *
+ * RESPONSABLES :
+ * - Melissa ABIDER : validations des formulaires inscription/connexion.
+ * - Jana CHEHWAN : validation des formulaires de matieres.
+ * - Asma AZRI : interactions du formulaire de fiches et carte de revision.
+ * - Alban COUSIN : recherche et compteur des utilisateurs partages.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const normalize = (value) => value
@@ -43,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.querySelector('[data-register-form]');
 
     if (registerForm) {
+        // RESPONSABLE : Melissa ABIDER - validation front du formulaire d'inscription.
         const fields = {
             firstName: registerForm.querySelector('[name="firstName"]'),
             lastName: registerForm.querySelector('[name="lastName"]'),
@@ -122,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.querySelector('[data-login-form]');
 
     if (loginForm) {
+        // RESPONSABLE : Melissa ABIDER - validation front du formulaire de connexion.
         const email = loginForm.querySelector('[name="email"]');
         const password = loginForm.querySelector('[name="password"]');
 
@@ -164,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('[data-matiere-form]').forEach((form) => {
+        // RESPONSABLE : Jana CHEHWAN - validation front des formulaires de matieres.
         const nameInput = form.querySelector('[name="name"]');
         const error = form.querySelector('[data-matiere-error]');
 
@@ -186,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const flashcardForm = document.querySelector('[data-flashcard-form]');
 
     if (flashcardForm) {
+        // RESPONSABLE : Asma AZRI - validation front des fiches et questions/reponses.
         const setFormFieldError = (field, message) => {
             const wrapper = field?.closest('.form-field');
             const fallbackError = field?.parentElement?.querySelector('[data-error-for]');
@@ -255,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareCheckboxes = Array.from(document.querySelectorAll('input[name="sharedUserIds[]"]'));
 
     if (shareSearch && shareUsers.length > 0) {
+        // RESPONSABLE : Alban COUSIN - recherche dans les destinataires du partage.
         const filterUsers = () => {
             const query = normalize(shareSearch.value);
 
@@ -267,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (shareCount && shareCheckboxes.length > 0) {
+        // RESPONSABLE : Alban COUSIN - compteur des utilisateurs selectionnes pour le partage.
         const updateShareCount = () => {
             const count = shareCheckboxes.filter((checkbox) => checkbox.checked).length;
             shareCount.textContent = `${count} sélectionné${count > 1 ? 's' : ''}`;
@@ -282,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addQaButton = document.querySelector('[data-add-qa]');
 
     if (qaList && addQaButton) {
+        // RESPONSABLE : Asma AZRI - ajout/suppression dynamique des cartes question/reponse.
         const updateQaItems = () => {
             const items = Array.from(qaList.querySelectorAll('[data-qa-item]'));
 
@@ -376,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const revisionCard = document.querySelector('[data-revision-card]');
 
     if (revisionCard) {
+        // RESPONSABLE : Asma AZRI - navigation dans les cartes. Alexandre BRUGGER : enregistrement statistique de revision.
         const cardText = revisionCard.querySelector('[data-card-text]');
         const cardSide = revisionCard.querySelector('[data-card-side]');
         const prevButton = document.querySelector('[data-card-prev]');

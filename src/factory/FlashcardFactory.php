@@ -1,6 +1,9 @@
 <?php
 /**
  * Factory pour créer des flashcards
+ *
+ * RESPONSABLE : Asma AZRI
+ * Perimetre : construction des objets Flashcard depuis formulaires et lignes SQL.
  */
 
 class FlashcardFactory {

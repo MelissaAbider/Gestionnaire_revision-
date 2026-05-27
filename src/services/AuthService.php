@@ -1,6 +1,10 @@
 <?php
 /**
  * Service d'authentification
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : validation des donnees d'inscription/connexion, hash du mot de passe,
+ * gestion de la session et expiration apres inactivite.
  */
 class AuthService {
 	private UserRepository $userRepo;

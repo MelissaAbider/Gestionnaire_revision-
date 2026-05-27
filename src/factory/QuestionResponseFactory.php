@@ -1,6 +1,9 @@
 <?php
 /**
  * Factory pour créer des questions/réponses
+ *
+ * RESPONSABLE : Asma AZRI
+ * Perimetre : construction des objets QuestionResponse.
  */
 
 class QuestionResponseFactory {

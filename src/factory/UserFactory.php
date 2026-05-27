@@ -1,6 +1,9 @@
 <?php
 /**
  * Factory pour créer des utilisateurs
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : construction propre des objets User depuis les donnees de formulaire.
  */
 
 class UserFactory {

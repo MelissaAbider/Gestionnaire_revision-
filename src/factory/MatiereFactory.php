@@ -1,6 +1,9 @@
 <?php
 /**
  * Factory pour creer des matieres
+ *
+ * RESPONSABLE : Jana CHEHWAN
+ * Perimetre : construction des objets Matiere depuis formulaires et lignes SQL.
  */
 class MatiereFactory {
 	// Crée une instance de Matiere à partir d'un tableau de données

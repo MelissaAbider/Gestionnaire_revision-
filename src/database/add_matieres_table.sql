@@ -1,3 +1,5 @@
+-- RESPONSABLE : Jana CHEHWAN
+-- Perimetre : organisation des fiches par matiere/theme.
 -- Migration pour ajouter les matieres sans supprimer les donnees existantes
 CREATE TABLE IF NOT EXISTS matieres (
     id SERIAL PRIMARY KEY,

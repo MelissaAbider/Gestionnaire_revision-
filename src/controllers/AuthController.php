@@ -1,6 +1,9 @@
 <?php
 /**
  * Contrôleur d'authentification
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : inscription, connexion, deconnexion et messages d'erreur des formulaires.
  */
 class AuthController {
 	private AuthService $authService;

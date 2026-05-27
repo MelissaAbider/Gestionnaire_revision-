@@ -1,6 +1,9 @@
 <?php
 /**
  * Service de gestion des matieres
+ *
+ * RESPONSABLE : Jana CHEHWAN
+ * Perimetre : creation, modification, suppression et recuperation des matieres.
  */
 class MatiereService {
 	private MatiereRepository $matiereRepo;

@@ -1,6 +1,9 @@
 <?php
 /**
  * Service de statistiques
+ *
+ * RESPONSABLE : Alexandre BRUGGER
+ * Perimetre : indicateurs du tableau de bord et suivi des revisions recentes.
  */
 
 class StatsService {

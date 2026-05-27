@@ -1,5 +1,12 @@
 /**
  * Feuille de style principale
+ *
+ * RESPONSABLES :
+ * - Melissa ABIDER : ecrans inscription/connexion.
+ * - Alexandre BRUGGER : navigation, accueil et tableau de bord.
+ * - Jana CHEHWAN : pages principales et matieres.
+ * - Asma AZRI : fiches de revision.
+ * - Alban COUSIN : elements visuels du partage.
  */
 /* ===== Variables de Couleurs ===== */
 :root {
@@ -37,7 +44,7 @@ body {
     color: var(--text-dark);
 }
 
-/* ===== Authentification ===== */
+/* ===== Authentification - Melissa ABIDER ===== */
 .auth-body {
     padding: 0;
     background: #f7f8ff;
@@ -1220,7 +1227,7 @@ body {
     }
 }
 
-/* ===== Accueil dashboard ===== */
+/* ===== Accueil dashboard - Alexandre BRUGGER ===== */
 .dashboard-home {
     background:
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(246, 248, 255, 0.9) 34%, rgba(231, 234, 255, 0.82) 100%),
@@ -1501,14 +1508,6 @@ body {
     line-height: 1.2;
 }
 
-.panel-title-row a,
-.panel-bottom-link {
-    color: #5a46e8;
-    font-size: 15px;
-    font-weight: 900;
-    text-decoration: none;
-}
-
 .activity-list {
     display: flex;
     flex-direction: column;
@@ -1552,12 +1551,6 @@ body {
     color: #475467;
     font-size: 14px;
     font-weight: 700;
-}
-
-.panel-bottom-link {
-    display: block;
-    padding-top: 22px;
-    text-align: center;
 }
 
 .quick-panel h2 {

@@ -1,6 +1,9 @@
 <?php
 /**
  * Vue de gestion des matieres
+ *
+ * RESPONSABLE : Jana CHEHWAN
+ * Perimetre : affichage des matieres, formulaire d'ajout, modification et suppression.
  */
 class MatiereView {
 	public function render(): void {
