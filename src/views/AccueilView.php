@@ -1,6 +1,9 @@
 <?php
 /**
  * Vue d'accueil connectee
+ *
+ * RESPONSABLE : Alexandre BRUGGER
+ * Perimetre : page d'accueil, tableau de bord et synthese des activites.
  */
 class AccueilView {
 	public function render(): void {
@@ -80,7 +83,6 @@ class AccueilView {
 						<section class="activity-panel">
 							<div class="panel-title-row">
 								<h2>Activite recente</h2>
-								<a href="#">Voir tout</a>
 							</div>
 
 							<?php if ($activityError): ?>
@@ -103,8 +105,6 @@ class AccueilView {
 									<?php endforeach; ?>
 								</div>
 							<?php endif; ?>
-
-							<a class="panel-bottom-link" href="#">Voir toute l'activite</a>
 						</section>
 
 						<section class="quick-panel">
@@ -131,14 +131,6 @@ class AccueilView {
 									<span>
 										<strong>Fiches partagees avec moi</strong>
 										<small>Decouvrir les fiches partagees</small>
-									</span>
-									<em>›</em>
-								</a>
-								<a class="quick-item" href="#">
-									<span class="quick-icon blue">▦</span>
-									<span>
-										<strong>Revisions du jour</strong>
-										<small>Commencer vos revisions</small>
 									</span>
 									<em>›</em>
 								</a>

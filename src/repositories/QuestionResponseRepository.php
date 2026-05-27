@@ -1,6 +1,9 @@
 <?php
 /**
  * Repository des questions/réponses
+ *
+ * RESPONSABLE : Asma AZRI
+ * Perimetre : sauvegarde et chargement des cartes question/reponse d'une fiche.
  */
 
 class QuestionResponseRepository {

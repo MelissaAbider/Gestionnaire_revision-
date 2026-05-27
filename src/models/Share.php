@@ -1,6 +1,9 @@
 <?php
 /**
  * Modèle Share
+ *
+ * RESPONSABLE : Alban COUSIN
+ * Perimetre : structure d'un lien de partage entre une fiche et un utilisateur.
  */
 
 class Share {

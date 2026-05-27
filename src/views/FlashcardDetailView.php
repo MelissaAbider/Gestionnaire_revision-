@@ -1,6 +1,10 @@
 <?php
 /**
  * Vue de visualisation d'une fiche de revision.
+ *
+ * RESPONSABLE PRINCIPAL : Asma AZRI
+ * Perimetre : consultation d'une fiche et mode revision question/reponse.
+ * Point de contact : Alban COUSIN pour l'affichage des informations de partage.
  */
 class FlashcardDetailView {
 	public function render(): void {
@@ -73,6 +77,7 @@ class FlashcardDetailView {
 							</div>
 
 							<div class="detail-shares">
+								<?php // RESPONSABLE : Alban COUSIN - affichage des destinataires du partage. ?>
 								<span>Partagée avec</span>
 								<?= $this->renderShares($flashcard['shared_with'] ?? []) ?>
 							</div>

@@ -1,6 +1,10 @@
 <?php
 /**
  * Repository des flashcards
+ *
+ * RESPONSABLE PRINCIPAL : Asma AZRI
+ * Perimetre : persistance des fiches personnelles et de leurs questions/reponses.
+ * Points de contact : Jana CHEHWAN pour matiere_id, Alban COUSIN pour la table shares.
  */
 
 class FlashcardRepository {
@@ -87,6 +91,7 @@ class FlashcardRepository {
 
             $flashcardId = (int)$stmt->fetchColumn();
             $this->questionResponseRepo->replaceForFlashcard($flashcardId, $questionResponses);
+            // Alban COUSIN : enregistre les utilisateurs avec qui la fiche est partagee.
             $this->syncShares($flashcardId, $ownerId, $sharedUserIds);
             $this->pdo->commit();
 
@@ -153,6 +158,7 @@ class FlashcardRepository {
             }
 
             $this->questionResponseRepo->replaceForFlashcard($id, $questionResponses);
+            // Alban COUSIN : remplace la liste de partage lors d'une modification.
             $this->syncShares($id, $ownerId, $sharedUserIds);
             $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -254,6 +260,7 @@ class FlashcardRepository {
      * @return array<string, mixed>|null
      */
     public function findViewForUser(int $id, int $userId): ?array {
+        // Alban COUSIN : autorise l'affichage si l'utilisateur est proprietaire ou destinataire du partage.
         $hasMatiereRelation = $this->tableExists('matieres')
             && $this->columnExists('flashcards', 'matiere_id');
 
@@ -457,6 +464,8 @@ class FlashcardRepository {
      * @return array<int, array<int, array<string, string>>>
      */
     private function findSharesByFlashcardIds(array $flashcardIds): array {
+        // RESPONSABLE : Alban COUSIN
+        // Perimetre : recuperation des destinataires affiches sur les fiches.
         $ids = array_values(array_unique(array_map('intval', $flashcardIds)));
         if (empty($ids)) {
             return [];
@@ -515,6 +524,8 @@ class FlashcardRepository {
      * @return int[]
      */
     private function findSharedUserIds(int $flashcardId): array {
+        // RESPONSABLE : Alban COUSIN
+        // Perimetre : pre-remplissage du formulaire d'edition avec les partages existants.
         $stmt = $this->pdo->prepare(
             'SELECT user_id FROM shares WHERE flashcard_id = :flashcard_id ORDER BY user_id ASC'
         );
@@ -527,6 +538,8 @@ class FlashcardRepository {
      * @param int[] $sharedUserIds
      */
     private function syncShares(int $flashcardId, int $ownerId, array $sharedUserIds): void {
+        // RESPONSABLE : Alban COUSIN
+        // Perimetre : ajout/retrait des partages d'une fiche avec d'autres utilisateurs.
         $stmt = $this->pdo->prepare('DELETE FROM shares WHERE flashcard_id = :flashcard_id');
         $stmt->execute(['flashcard_id' => $flashcardId]);
 
@@ -555,6 +568,8 @@ class FlashcardRepository {
      * @return int[]
      */
     private function findValidSharedUserIds(array $userIds, int $ownerId): array {
+        // RESPONSABLE : Alban COUSIN
+        // Perimetre : securise le partage en excluant le proprietaire et les utilisateurs inexistants.
         $ids = array_values(array_unique(array_filter(array_map('intval', $userIds))));
         $ids = array_values(array_filter($ids, fn(int $id): bool => $id !== $ownerId));
 

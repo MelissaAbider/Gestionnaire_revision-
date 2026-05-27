@@ -1,6 +1,9 @@
 <?php
 /**
  * Vue d'inscription
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : formulaire d'inscription et affichage des erreurs de validation.
  */
 
 class RegisterView {

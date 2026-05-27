@@ -1,6 +1,9 @@
 <?php
 /**
  * Repository des matieres
+ *
+ * RESPONSABLE : Jana CHEHWAN
+ * Perimetre : requetes SQL des matieres et comptage des fiches par matiere.
  */
 class MatiereRepository {
 	private \PDO $pdo;

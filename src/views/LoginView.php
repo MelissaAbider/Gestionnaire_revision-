@@ -1,6 +1,9 @@
 <?php
 /**
  * Vue de connexion
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : formulaire de connexion et affichage des erreurs d'authentification.
  */
 class LoginView {
 	public function render(): void {

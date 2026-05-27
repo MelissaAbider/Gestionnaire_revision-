@@ -1,6 +1,9 @@
 <?php
 /**
  * Navigation principale des pages connectees.
+ *
+ * RESPONSABLE : Alexandre BRUGGER
+ * Perimetre : navigation entre accueil, fiches, matieres et deconnexion.
  */
 class HomeNavView {
 	public static function render(string $active = ''): void {

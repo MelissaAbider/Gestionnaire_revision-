@@ -1,6 +1,10 @@
 <?php
 /**
  * Repository des utilisateurs
+ *
+ * RESPONSABLE : Melissa ABIDER
+ * Perimetre : acces aux donnees utilisateur pour inscription, connexion et session.
+ * Point de contact avec Alban COUSIN : findShareCandidates() alimente le partage.
  */
 class UserRepository {
 	private \PDO $pdo;

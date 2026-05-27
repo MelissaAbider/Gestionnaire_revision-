@@ -1,6 +1,9 @@
 <?php
 /**
  * Modèle Flashcard
+ *
+ * RESPONSABLE : Asma AZRI
+ * Perimetre : structure des fiches de revision personnelles.
  */
 
 class Flashcard {

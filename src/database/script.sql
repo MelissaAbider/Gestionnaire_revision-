@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS users CASCADE;
 
 -- =========================
 -- TABLE USERS
+-- RESPONSABLE : Melissa ABIDER
 -- =========================
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -21,6 +22,7 @@ CREATE TABLE users (
 
 -- =========================
 -- TABLE MATIERES
+-- RESPONSABLE : Jana CHEHWAN
 -- =========================
 CREATE TABLE matieres (
     id SERIAL PRIMARY KEY,
@@ -40,6 +42,7 @@ CREATE TABLE matieres (
 
 -- =========================
 -- TABLE FLASHCARDS
+-- RESPONSABLE : Asma AZRI
 -- =========================
 CREATE TABLE flashcards (
     id SERIAL PRIMARY KEY,
@@ -63,6 +66,7 @@ CREATE TABLE flashcards (
 
 -- =========================
 -- TABLE QUESTION_RESPONSES
+-- RESPONSABLE : Asma AZRI
 -- =========================
 CREATE TABLE question_responses (
     id SERIAL PRIMARY KEY,
@@ -78,6 +82,7 @@ CREATE TABLE question_responses (
 
 -- =========================
 -- TABLE SHARES
+-- RESPONSABLE : Alban COUSIN
 -- =========================
 CREATE TABLE shares (
     id SERIAL PRIMARY KEY,
@@ -101,6 +106,7 @@ CREATE TABLE shares (
 
 -- =========================
 -- TABLE REVISION_EVENTS
+-- RESPONSABLE : Alexandre BRUGGER
 -- =========================
 CREATE TABLE revision_events (
     id SERIAL PRIMARY KEY,

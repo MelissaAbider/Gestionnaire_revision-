@@ -1,6 +1,10 @@
 <?php
 /**
  * Vue du formulaire de creation/edition de fiche.
+ *
+ * RESPONSABLE PRINCIPAL : Asma AZRI
+ * Perimetre : formulaire de creation/modification des fiches et questions/reponses.
+ * Point de contact : Alban COUSIN pour le bloc de partage.
  */
 class FlashcardFormView {
 	public function render(): void {
@@ -131,6 +135,7 @@ class FlashcardFormView {
 						</div>
 
 						<div class="form-panel share-panel">
+							<?php // RESPONSABLE : Alban COUSIN - selection des utilisateurs avec qui partager la fiche. ?>
 							<div class="share-panel-header">
 								<div>
 									<h2>Partage</h2>

@@ -1,6 +1,9 @@
 <?php
 /**
  * Modele Matiere
+ *
+ * RESPONSABLE : Jana CHEHWAN
+ * Perimetre : structure des donnees de matiere et nombre de fiches associees.
  */
 class Matiere {
 	public ?int $id;

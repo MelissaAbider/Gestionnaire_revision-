@@ -1,6 +1,10 @@
 <?php
 /**
  * Service de gestion des flashcards
+ *
+ * RESPONSABLE PRINCIPAL : Asma AZRI
+ * Perimetre : creation, affichage, modification, suppression et visualisation des fiches.
+ * Points de contact : Jana CHEHWAN pour les matieres, Alban COUSIN pour les partages.
  */
 
 class FlashcardService {
@@ -233,6 +237,7 @@ class FlashcardService {
      * @return array<string, mixed>
      */
     public function getFormOptions(int $ownerId): array {
+        // Alban COUSIN : la liste des utilisateurs sert a proposer les destinataires du partage.
         return [
             'matieres' => $this->matiereRepo->findAllByUser($ownerId),
             'users' => $this->userRepo->findShareCandidates($ownerId),
@@ -247,6 +252,7 @@ class FlashcardService {
             ? (int)$data['matiereId']
             : null;
 
+        // Alban COUSIN : normalisation des utilisateurs selectionnes pour le partage.
         $sharedUserIds = $data['sharedUserIds'] ?? [];
         if (!is_array($sharedUserIds)) {
             $sharedUserIds = [];

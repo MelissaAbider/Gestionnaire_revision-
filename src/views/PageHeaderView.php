@@ -1,6 +1,9 @@
 <?php
 /**
  * En-tete commun des pages connectees.
+ *
+ * RESPONSABLE : Alexandre BRUGGER
+ * Perimetre : en-tete reutilisable des pages principales et menu utilisateur.
  */
 class PageHeaderView {
 	public static function render(

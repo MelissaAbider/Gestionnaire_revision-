@@ -1,6 +1,9 @@
 <?php
 /**
  * Repository des partages
+ *
+ * RESPONSABLE : Alban COUSIN
+ * Perimetre : fiches partagees avec un utilisateur, filtres et statistiques de partage.
  */
 
 class ShareRepository {

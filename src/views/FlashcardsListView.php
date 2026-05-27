@@ -1,6 +1,10 @@
 <?php
 /**
  * Vue de la page Mes fiches.
+ *
+ * RESPONSABLE PRINCIPAL : Asma AZRI
+ * Perimetre : affichage, recherche, modification et suppression des fiches personnelles.
+ * Point de contact : Alban COUSIN pour la colonne "Partagees avec moi".
  */
 class FlashcardsListView {
 	public function render(): void {
@@ -38,6 +42,7 @@ class FlashcardsListView {
 
 					<div class="flashcards-board">
 						<section class="revision-panel">
+							<?php // RESPONSABLE : Asma AZRI - liste des fiches creees par l'utilisateur. ?>
 							<div class="revision-panel-header">
 								<span class="revision-panel-icon purple">▤</span>
 								<div>
@@ -83,6 +88,7 @@ class FlashcardsListView {
 						</section>
 
 						<section class="revision-panel">
+							<?php // RESPONSABLE : Alban COUSIN - liste des fiches partagees par d'autres utilisateurs. ?>
 							<div class="revision-panel-header">
 								<span class="revision-panel-icon blue">👥</span>
 								<div>

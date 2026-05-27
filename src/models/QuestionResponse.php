@@ -1,6 +1,9 @@
 <?php
 /**
  * Modèle QuestionResponse
+ *
+ * RESPONSABLE : Asma AZRI
+ * Perimetre : structure d'une carte question/reponse.
  */
 
 class QuestionResponse {

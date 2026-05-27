@@ -1,4 +1,6 @@
 (function () {
+    // RESPONSABLE : Melissa ABIDER
+    // Perimetre : suivi cote navigateur du delai d'inactivite avant retour connexion.
     const timeout = Number(document.body.dataset.sessionTimeout || 0);
     if (!timeout) return;
 
